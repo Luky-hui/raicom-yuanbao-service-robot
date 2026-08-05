@@ -1,0 +1,18 @@
+<launch>
+  <arg name="mission_type" default="auto"/>
+  <arg name="face_mode" default="any"/>
+  <arg name="voice_mode" default="topic"/>
+  <arg name="target_object" default=""/>
+  <arg name="config_file" default="$(find home_service_mission)/config/home_waypoints.yaml"/>
+
+  <node pkg="home_service_mission"
+        type="home_service_mission_node.py"
+        name="home_service_mission"
+        output="screen">
+    <param name="mission_type" value="$(arg mission_type)"/>
+    <param name="face_mode" value="$(arg face_mode)"/>
+    <param name="voice_mode" value="$(arg voice_mode)"/>
+    <param name="target_object" value="$(arg target_object)"/>
+    <param name="config_file" value="$(arg config_file)"/>
+  </node>
+</launch>

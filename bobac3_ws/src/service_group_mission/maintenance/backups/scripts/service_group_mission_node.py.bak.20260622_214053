@@ -1,0 +1,695 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+import math
+import os
+import struct
+import subprocess
+import time
+import wave
+
+import actionlib
+import rospy
+import tf
+import yaml
+from actionlib_msgs.msg import GoalStatus
+from geometry_msgs.msg import Quaternion, Twist
+from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
+from std_msgs.msg import Bool, String
+from std_srvs.srv import Empty
+
+from face_rec.msg import face_results
+from face_rec.srv import recognition_results, recognition_resultsRequest
+from raicom_vision.srv import DetectObjects, DetectObjectsRequest
+from robot_audio.srv import robot_tts, robot_ttsRequest
+
+
+class ServiceGroupMission:
+    def __init__(self):
+        rospy.init_node("service_group_mission")
+        self.mission_type = rospy.get_param("~mission_type", "welcome")
+        self.config_file = rospy.get_param("~config_file", "")
+        self.face_mode = rospy.get_param("~face_mode", "any")
+        self.voice_mode = rospy.get_param("~voice_mode", "topic")
+        self.command_topic = rospy.get_param("~command_topic", "/service_group_mission/voice_command")
+        self.face_topic = rospy.get_param("~face_topic", "/face_detection")
+        self.face_service = rospy.get_param("~face_service", "face_recognition_results")
+        self.vision_service = rospy.get_param("~vision_service", "/raicom_vision/detect")
+        self.move_base_name = rospy.get_param("~move_base_name", "move_base")
+        self.move_base_fallback_name = rospy.get_param("~move_base_fallback_name", "move_base_node")
+        self.clear_costmaps_service = rospy.get_param("~clear_costmaps_service", "/move_base_node/clear_costmaps")
+        self.action_server_wait = float(rospy.get_param("~action_server_wait", 180.0))
+        self.nav_timeout = float(rospy.get_param("~nav_timeout", 120.0))
+        self.tts_service_wait = float(rospy.get_param("~tts_service_wait", 8.0))
+        self.test_all_venues = rospy.get_param("~test_all_venues", False)
+
+        self.last_command = None
+        self.last_face_msg = None
+        self.last_admin_name = None
+        self.emergency_stop = False
+
+        self.command_sub = rospy.Subscriber(self.command_topic, String, self._command_cb, queue_size=10)
+        self.face_sub = rospy.Subscriber(self.face_topic, face_results, self._face_cb, queue_size=10)
+        self.stop_sub = rospy.Subscriber(
+            "/raicom/emergency_stop", Bool, self._stop_cb, queue_size=10
+        )
+        self.speech_pub = rospy.Publisher("/service_group_mission/speech", String, queue_size=10, latch=True)
+        self.alarm_pub = rospy.Publisher("/service_group_mission/alarm", String, queue_size=10, latch=True)
+        self.cmd_vel_pub = rospy.Publisher("/cmd_vel", Twist, queue_size=1)
+        self.tf_listener = tf.TransformListener()
+
+        self.move_base = actionlib.SimpleActionClient(self.move_base_name, MoveBaseAction)
+        self.clear_costmaps = rospy.ServiceProxy(self.clear_costmaps_service, Empty)
+        self.tts_client = rospy.ServiceProxy("voice_tts", robot_tts)
+        self.face_client = rospy.ServiceProxy(self.face_service, recognition_results)
+        self.vision_client = rospy.ServiceProxy(self.vision_service, DetectObjects)
+
+        self.config = self._load_config(self.config_file)
+        self.alarm_audio_path = self.create_alarm_audio()
+
+    def _load_config(self, path):
+        if not path or not os.path.exists(path):
+            raise RuntimeError("Mission config file not found: %s" % path)
+        with open(path, "r", encoding="utf-8") as stream:
+            return yaml.safe_load(stream)
+
+    def _command_cb(self, msg):
+        self.last_command = msg.data.strip()
+
+    def _face_cb(self, msg):
+        self.last_face_msg = msg
+
+    def _stop_cb(self, msg):
+        self.emergency_stop = bool(msg.data)
+        if self.emergency_stop:
+            self.move_base.cancel_all_goals()
+            self.publish_stop()
+
+    def check_stopped(self):
+        if self.emergency_stop:
+            raise RuntimeError("Emergency stop is active")
+
+    def run(self):
+        self.check_stopped()
+        rospy.loginfo("Waiting for move_base action server: %s", self.move_base_name)
+        if not self.wait_for_action_server(self.move_base, self.move_base_name):
+            rospy.logwarn("Primary move_base action server unavailable, trying: %s", self.move_base_fallback_name)
+            self.move_base = actionlib.SimpleActionClient(self.move_base_fallback_name, MoveBaseAction)
+            if not self.wait_for_action_server(self.move_base, self.move_base_fallback_name):
+                raise RuntimeError("move_base action server is not available")
+
+        self.wait_for_tts_service()
+
+        if self.mission_type == "welcome":
+            self.run_welcome()
+        elif self.mission_type == "patrol":
+            self.run_patrol()
+        else:
+            raise RuntimeError("Unknown mission_type: %s" % self.mission_type)
+
+    def wait_for_action_server(self, client, name):
+        deadline = time.time() + self.action_server_wait
+        while not rospy.is_shutdown() and time.time() < deadline:
+            self.check_stopped()
+            if client.wait_for_server(rospy.Duration(0.5)):
+                rospy.loginfo("Connected to move_base action server: %s", name)
+                return True
+            time.sleep(0.2)
+        return False
+
+    def wait_for_tts_service(self):
+        if self.tts_service_wait <= 0.0:
+            return
+        rospy.loginfo("Waiting for voice_tts service")
+        try:
+            rospy.wait_for_service("voice_tts", timeout=self.tts_service_wait)
+            rospy.loginfo("Connected to voice_tts service")
+        except Exception as exc:
+            rospy.logwarn(
+                "voice_tts unavailable after %.1fs: %s",
+                self.tts_service_wait,
+                exc,
+            )
+
+    def run_welcome(self):
+        mission = self.config["missions"]["welcome"]
+        self.wait_for_face(any_face=True)
+        self.speak(mission["greeting"])
+        self.wait_for_command(mission["trigger_phrase"])
+        self.speak(mission["accept"])
+        if self.test_all_venues:
+            route = self.config["missions"]["patrol"]["route"]
+            for index, venue in enumerate(route):
+                self.go_to(venue)
+                if index < len(route) - 1:
+                    self.exit_after_parking(venue)
+            target_to_leave = route[-1]
+        else:
+            self.go_to(mission["target"])
+            target_to_leave = mission["target"]
+        self.speak(mission["introduction"])
+        self.speak(mission["leaving"])
+        self.exit_after_parking(target_to_leave)
+        self.go_to(mission["return_target"])
+        rospy.loginfo("Welcome mission finished")
+
+    def run_patrol(self):
+        mission = self.config["missions"]["patrol"]
+        admin_name = self.wait_for_face(any_face=False, expected_name=mission.get("admin_name", ""))
+        self.speak("你好，管理员 %s" % admin_name)
+        self.wait_for_command(mission["trigger_phrase"])
+        self.speak(mission["accept"])
+
+        for venue in mission["route"]:
+            self.go_to(venue)
+            time.sleep(float(self.config["inspection"].get("settle_time", 2.0)))
+            event = self.detect_inspection_event(venue)
+            self.handle_inspection_event(venue, event)
+            self.exit_after_parking(venue)
+
+        charge_approach = mission.get("charge_approach_target")
+        if charge_approach:
+            self.go_to(charge_approach)
+            self.dock_to_charge(mission["charge_target"])
+            rospy.loginfo("Arrived at %s", mission["charge_target"])
+        else:
+            self.go_to(mission["charge_target"])
+        rospy.loginfo("Patrol mission finished at charge target")
+
+    def exit_after_parking(self, waypoint_name):
+        options = self.config.get("exit_after_parking", {})
+        if not options.get("enabled", False):
+            return
+        if waypoint_name not in options.get("venues", []):
+            return
+        speed = float(options.get("reverse_speed", -0.05))
+        duration = float(options.get("duration", 3.0))
+        rospy.loginfo("Exiting parking box from %s", waypoint_name)
+        cmd = Twist()
+        cmd.linear.x = speed
+        deadline = time.time() + duration
+        while not rospy.is_shutdown() and time.time() < deadline:
+            self.check_stopped()
+            self.cmd_vel_pub.publish(cmd)
+            time.sleep(0.05)
+        self.publish_stop()
+
+    def wait_for_face(self, any_face=True, expected_name=""):
+        if self.face_mode == "skip":
+            return expected_name or "sim"
+
+        rospy.loginfo("Waiting for face trigger, mode=%s", self.face_mode)
+        rate = rospy.Rate(2)
+        while not rospy.is_shutdown():
+            self.check_stopped()
+            if any_face and self.last_face_msg and self.last_face_msg.face_data:
+                return "guest"
+            if not any_face:
+                name = self.query_admin_face(expected_name)
+                if name:
+                    return name
+            rate.sleep()
+        raise rospy.ROSInterruptException()
+
+    def query_admin_face(self, expected_name):
+        try:
+            req = recognition_resultsRequest()
+            req.mode = 0
+            req.str = ""
+            res = self.face_client(req)
+        except Exception as exc:
+            rospy.logwarn_throttle(5.0, "Face recognition service unavailable: %s", exc)
+            return None
+
+        if not res.success:
+            return None
+        for face in res.result.face_data:
+            name = face.header.frame_id
+            if name and name != "Unknown":
+                if not expected_name or expected_name in name or name in expected_name:
+                    return name
+        return None
+
+    def wait_for_command(self, expected_phrase):
+        if self.voice_mode == "skip":
+            return expected_phrase
+
+        rospy.loginfo("Waiting for voice command containing: %s", expected_phrase)
+        rate = rospy.Rate(5)
+        while not rospy.is_shutdown():
+            self.check_stopped()
+            if self.last_command and expected_phrase in self.last_command:
+                command = self.last_command
+                self.last_command = None
+                return command
+            rate.sleep()
+        raise rospy.ROSInterruptException()
+
+    def speak(self, text):
+        rospy.loginfo("TTS: %s", text)
+        self.speech_pub.publish(String(text))
+        req = robot_ttsRequest()
+        req.text = text
+        req.play = True
+        try:
+            self.tts_client(req)
+        except Exception as exc:
+            try:
+                rospy.wait_for_service("voice_tts", timeout=3.0)
+                self.tts_client(req)
+            except Exception as retry_exc:
+                rospy.logwarn_throttle(
+                    5.0,
+                    "voice_tts unavailable, logged speech only: %s; retry: %s",
+                    exc,
+                    retry_exc,
+                )
+
+    def go_to(self, waypoint_name):
+        self.check_stopped()
+        waypoint = self.config["waypoints"][waypoint_name]
+        rospy.loginfo("Navigating to %s", waypoint_name)
+        try:
+            self.clear_costmaps()
+        except Exception:
+            pass
+
+        goal = MoveBaseGoal()
+        goal.target_pose.header.frame_id = waypoint.get("frame_id", "map")
+        goal.target_pose.header.stamp = rospy.Time.now()
+        goal.target_pose.pose.position.x = float(waypoint.get("nav_x", waypoint["x"]))
+        goal.target_pose.pose.position.y = float(waypoint.get("nav_y", waypoint["y"]))
+        # Let move_base enter tight white boxes with a collision-safe heading;
+        # the task layer still refines to the final inspection-facing yaw below.
+        nav_yaw_value = waypoint.get("nav_yaw", waypoint.get("yaw", 0.0))
+        if isinstance(nav_yaw_value, str) and nav_yaw_value.lower() == "current":
+            try:
+                nav_yaw = self.current_pose_in_map()[2]
+            except Exception:
+                nav_yaw = float(waypoint.get("yaw", 0.0))
+        else:
+            nav_yaw = float(nav_yaw_value)
+        goal.target_pose.pose.orientation = self.yaw_to_quaternion(nav_yaw)
+
+        self.move_base.send_goal(goal)
+        finished = self.move_base.wait_for_result(rospy.Duration(self.nav_timeout))
+        if not finished:
+            self.move_base.cancel_goal()
+            raise RuntimeError("Navigation timeout at waypoint: %s" % waypoint_name)
+
+        state = self.move_base.get_state()
+        if state != GoalStatus.SUCCEEDED:
+            if self.try_direct_fallback(waypoint_name, waypoint, state):
+                rospy.loginfo("Arrived at %s", waypoint_name)
+                self.observe_arrival(waypoint_name)
+                return
+            raise RuntimeError("Navigation failed at %s, state=%s" % (waypoint_name, state))
+        self.refine_pose(waypoint_name)
+        rospy.loginfo("Arrived at %s", waypoint_name)
+        self.observe_arrival(waypoint_name)
+
+    def observe_arrival(self, waypoint_name):
+        options = self.config.get("arrival_observation", {})
+        if not options.get("enabled", False):
+            return
+        speech = options.get("speech", "arrived")
+        pause = float(options.get("pause", 0.0))
+        rospy.loginfo("Arrival observation at %s: %s", waypoint_name, speech)
+        self.speak(speech)
+        if pause > 0.0:
+            time.sleep(pause)
+
+    def try_direct_fallback(self, waypoint_name, waypoint, state):
+        if not waypoint.get("direct_fallback", False):
+            return False
+        max_distance = float(waypoint.get("max_direct_fallback_distance", 0.8))
+        try:
+            x, y, _ = self.current_pose_in_map()
+        except Exception as exc:
+            rospy.logwarn("Direct fallback unavailable at %s: %s", waypoint_name, exc)
+            return False
+        distance = math.hypot(float(waypoint["x"]) - x, float(waypoint["y"]) - y)
+        if distance > max_distance:
+            rospy.logwarn(
+                "Direct fallback skipped at %s: move_base_state=%s distance=%.3f > %.3f",
+                waypoint_name,
+                state,
+                distance,
+                max_distance,
+            )
+            return False
+        accept_distance = waypoint.get("direct_accept_distance")
+        if accept_distance is not None and distance <= float(accept_distance):
+            rospy.logwarn(
+                "move_base failed near %s with state=%s; accepting close pose, distance=%.3f",
+                waypoint_name,
+                state,
+                distance,
+            )
+            self.publish_stop()
+            return True
+        rospy.logwarn(
+            "move_base failed at %s with state=%s; using short direct fallback, distance=%.3f",
+            waypoint_name,
+            state,
+            distance,
+        )
+        self.drive_direct_to_pose(waypoint_name, waypoint)
+        return True
+
+    def drive_direct_to_pose(self, waypoint_name, waypoint):
+        precision = self.config.get("precision_parking", {})
+        defaults = precision.get("default", {})
+        overrides = precision.get(waypoint_name, {})
+        options = dict(defaults)
+        options.update(overrides)
+
+        target_x = float(waypoint["x"])
+        target_y = float(waypoint["y"])
+        target_yaw = float(waypoint.get("yaw", 0.0))
+        xy_tolerance = float(options.get("xy_tolerance", 0.04))
+        yaw_tolerance = float(options.get("yaw_tolerance", 0.08))
+        timeout = float(waypoint.get("direct_fallback_timeout", options.get("timeout", 30.0)))
+        max_linear = float(options.get("max_linear", 0.05))
+        max_angular = max(float(options.get("max_angular", 0.18)), 0.25)
+
+        rospy.loginfo("Direct driving to %s", waypoint_name)
+        deadline = time.time() + timeout
+        while not rospy.is_shutdown() and time.time() < deadline:
+            x, y, yaw = self.current_pose_in_map()
+            dx = target_x - x
+            dy = target_y - y
+            distance = math.hypot(dx, dy)
+            if distance <= xy_tolerance:
+                break
+            heading = math.atan2(dy, dx)
+            heading_error = self.normalize_angle(heading - yaw)
+            cmd = Twist()
+            if abs(heading_error) > 0.25:
+                cmd.angular.z = self.clip(1.0 * heading_error, -max_angular, max_angular)
+            else:
+                cmd.linear.x = self.clip(0.5 * distance, 0.02, max_linear)
+                cmd.angular.z = self.clip(0.8 * heading_error, -max_angular, max_angular)
+            self.cmd_vel_pub.publish(cmd)
+            time.sleep(0.05)
+
+        while not rospy.is_shutdown() and time.time() < deadline:
+            x, y, yaw = self.current_pose_in_map()
+            yaw_error = self.normalize_angle(target_yaw - yaw)
+            if abs(yaw_error) <= yaw_tolerance:
+                self.publish_stop()
+                rospy.loginfo(
+                    "Direct refined %s: error_xy=%.3f, error_yaw=%.3f",
+                    waypoint_name,
+                    math.hypot(target_x - x, target_y - y),
+                    yaw_error,
+                )
+                return
+            cmd = Twist()
+            cmd.angular.z = self.clip(0.9 * yaw_error, -max_angular, max_angular)
+            self.cmd_vel_pub.publish(cmd)
+            time.sleep(0.05)
+
+        self.publish_stop()
+        x, y, yaw = self.current_pose_in_map()
+        raise RuntimeError(
+            "Direct fallback failed at %s: target=(%.3f, %.3f, %.3f), current=(%.3f, %.3f, %.3f)"
+            % (waypoint_name, target_x, target_y, target_yaw, x, y, yaw)
+        )
+
+    def refine_pose(self, waypoint_name):
+        precision = self.config.get("precision_parking", {})
+        if not precision.get("enabled", True):
+            return
+
+        waypoint = self.config["waypoints"][waypoint_name]
+        defaults = precision.get("default", {})
+        overrides = precision.get(waypoint_name, {})
+        options = dict(defaults)
+        options.update(overrides)
+
+        target_x = float(waypoint["x"])
+        target_y = float(waypoint["y"])
+        target_yaw = float(waypoint.get("yaw", 0.0))
+        xy_tolerance = float(options.get("xy_tolerance", 0.04))
+        yaw_tolerance = float(options.get("yaw_tolerance", 0.08))
+        timeout = float(options.get("timeout", 12.0))
+        rate_hz = float(options.get("rate", 20.0))
+        stable_cycles_required = int(options.get("stable_cycles", 8))
+        kp_xy = float(options.get("kp_xy", 0.8))
+        kp_yaw = float(options.get("kp_yaw", 1.0))
+        max_linear = float(options.get("max_linear", 0.08))
+        max_angular = float(options.get("max_angular", 0.18))
+
+        rospy.loginfo("Refining pose at %s", waypoint_name)
+        rate = rospy.Rate(rate_hz)
+        deadline = rospy.Time.now() + rospy.Duration(timeout)
+        stable_cycles = 0
+
+        while not rospy.is_shutdown() and rospy.Time.now() < deadline:
+            x, y, yaw = self.current_pose_in_map()
+            dx = target_x - x
+            dy = target_y - y
+            yaw_error = self.normalize_angle(target_yaw - yaw)
+            distance = math.hypot(dx, dy)
+
+            if distance <= xy_tolerance and abs(yaw_error) <= yaw_tolerance:
+                stable_cycles += 1
+                self.publish_stop()
+                if stable_cycles >= stable_cycles_required:
+                    rospy.loginfo(
+                        "Refined %s: error_xy=%.3f, error_yaw=%.3f",
+                        waypoint_name,
+                        distance,
+                        yaw_error,
+                    )
+                    return
+                rate.sleep()
+                continue
+
+            stable_cycles = 0
+            cmd = Twist()
+            # Convert map-frame error into base-frame velocity commands.
+            cmd.linear.x = self.clip(kp_xy * (math.cos(yaw) * dx + math.sin(yaw) * dy), -max_linear, max_linear)
+            cmd.linear.y = self.clip(kp_xy * (-math.sin(yaw) * dx + math.cos(yaw) * dy), -max_linear, max_linear)
+            cmd.angular.z = self.clip(kp_yaw * yaw_error, -max_angular, max_angular)
+            self.cmd_vel_pub.publish(cmd)
+            rate.sleep()
+
+        self.publish_stop()
+        x, y, yaw = self.current_pose_in_map()
+        raise RuntimeError(
+            "Precise parking failed at %s: target=(%.3f, %.3f, %.3f), current=(%.3f, %.3f, %.3f)"
+            % (waypoint_name, target_x, target_y, target_yaw, x, y, yaw)
+        )
+
+    def current_pose_in_map(self):
+        self.tf_listener.waitForTransform("map", "base_footprint", rospy.Time(0), rospy.Duration(1.0))
+        (translation, rotation) = self.tf_listener.lookupTransform("map", "base_footprint", rospy.Time(0))
+        yaw = tf.transformations.euler_from_quaternion(rotation)[2]
+        return translation[0], translation[1], yaw
+
+    def dock_to_charge(self, waypoint_name):
+        docking = self.config.get("docking", {})
+        if not docking.get("enabled", True):
+            self.refine_pose(waypoint_name)
+            return
+
+        waypoint = self.config["waypoints"][waypoint_name]
+        target_y = float(waypoint["y"])
+        target_yaw = float(waypoint.get("yaw", 0.0))
+        reverse_speed = float(docking.get("reverse_speed", -0.025))
+        timeout = float(docking.get("timeout", 18.0))
+        y_tolerance = float(docking.get("y_tolerance", 0.025))
+        yaw_tolerance = float(docking.get("yaw_tolerance", 0.035))
+        kp_yaw = float(docking.get("kp_yaw", 0.6))
+        max_angular = float(docking.get("max_angular", 0.06))
+
+        rospy.loginfo("Docking straight to %s", waypoint_name)
+        rate = rospy.Rate(20.0)
+        deadline = rospy.Time.now() + rospy.Duration(timeout)
+        stable_cycles = 0
+
+        while not rospy.is_shutdown() and rospy.Time.now() < deadline:
+            x, y, yaw = self.current_pose_in_map()
+            y_error = target_y - y
+            yaw_error = self.normalize_angle(target_yaw - yaw)
+
+            if abs(y_error) <= y_tolerance and abs(yaw_error) <= yaw_tolerance:
+                stable_cycles += 1
+                self.publish_stop()
+                if stable_cycles >= 10:
+                    rospy.loginfo("Docked %s: error_y=%.3f, error_yaw=%.3f", waypoint_name, y_error, yaw_error)
+                    return
+                rate.sleep()
+                continue
+
+            stable_cycles = 0
+            cmd = Twist()
+            # Keep docking motion one-dimensional: align first, then reverse slowly into the pile.
+            cmd.linear.x = reverse_speed if y_error > 0.0 else 0.0
+            cmd.angular.z = self.clip(kp_yaw * yaw_error, -max_angular, max_angular)
+            self.cmd_vel_pub.publish(cmd)
+            rate.sleep()
+
+        self.publish_stop()
+        x, y, yaw = self.current_pose_in_map()
+        raise RuntimeError(
+            "Docking failed at %s: target_y=%.3f, current=(%.3f, %.3f, %.3f)"
+            % (waypoint_name, target_y, x, y, yaw)
+        )
+
+    def publish_stop(self):
+        self.cmd_vel_pub.publish(Twist())
+
+    @staticmethod
+    def clip(value, low, high):
+        return max(low, min(high, value))
+
+    @staticmethod
+    def normalize_angle(angle):
+        while angle > math.pi:
+            angle -= 2.0 * math.pi
+        while angle < -math.pi:
+            angle += 2.0 * math.pi
+        return angle
+
+    def detect_inspection_event(self, venue):
+        inspection = self.config.get("inspection", {})
+        scripted = inspection.get("scripted_events") or {}
+        if venue in scripted:
+            return scripted[venue]
+
+        if inspection.get("event_source", "vision") != "vision":
+            return "unknown"
+
+        topic = inspection["image_topic"]
+        sample_count = int(inspection["sample_count"])
+        sample_interval = float(inspection["sample_interval"])
+        fire_confidence = float(inspection["fire_confidence"])
+        extinguisher_confidence = float(inspection["extinguisher_confidence"])
+        fire_scores = []
+        extinguisher_scores = []
+        successful_samples = 0
+
+        for sample_index in range(sample_count):
+            request = DetectObjectsRequest()
+            request.image_topic = topic
+            request.labels = ["fire", "fire extinguisher"]
+            request.confidence = min(fire_confidence, extinguisher_confidence)
+            try:
+                response = self.vision_client(request)
+            except Exception as exc:
+                rospy.logwarn(
+                    "Vision service unavailable on sample %d/%d: %s",
+                    sample_index + 1,
+                    sample_count,
+                    exc,
+                )
+                continue
+            if not response.success:
+                rospy.logwarn(
+                    "Vision sample %d/%d failed: %s",
+                    sample_index + 1,
+                    sample_count,
+                    response.message,
+                )
+                continue
+            successful_samples += 1
+            for label, confidence in zip(response.labels, response.confidences):
+                if label == "fire" and confidence >= fire_confidence:
+                    fire_scores.append(float(confidence))
+                elif label == "fire extinguisher" and confidence >= extinguisher_confidence:
+                    extinguisher_scores.append(float(confidence))
+            if sample_index + 1 < sample_count:
+                time.sleep(sample_interval)
+
+        if successful_samples == 0:
+            return "unknown"
+        if fire_scores:
+            rospy.loginfo(
+                "Fire detected at %s, max confidence=%.3f",
+                venue,
+                max(fire_scores),
+            )
+            return "fire"
+        if not extinguisher_scores:
+            rospy.loginfo(
+                "No extinguisher detected at %s across %d successful samples",
+                venue,
+                successful_samples,
+            )
+            return "extinguisher_missing"
+        rospy.loginfo(
+            "Extinguisher present at %s, max confidence=%.3f",
+            venue,
+            max(extinguisher_scores),
+        )
+        return "normal"
+
+    def handle_inspection_event(self, venue, event):
+        venue_cn = {
+            "jilin": "吉林馆",
+            "guangzhou": "广州馆",
+            "beijing": "北京馆",
+            "shanghai": "上海馆",
+            "shenzhen": "深圳馆",
+        }.get(venue, venue)
+
+        if event == "fire":
+            self.raise_alarm("fire")
+            self.speak("在%s发现火源" % venue_cn)
+        elif event == "extinguisher_missing":
+            self.raise_alarm("extinguisher_missing")
+            self.speak("%s未放置灭火器" % venue_cn)
+        else:
+            rospy.loginfo("No reportable inspection event at %s", venue_cn)
+
+    def raise_alarm(self, event):
+        self.alarm_pub.publish(String(event))
+        alarm_seconds = float(self.config["inspection"].get("alarm_seconds", 4.0))
+        started = time.time()
+        try:
+            subprocess.run(
+                ["aplay", "-q", self.alarm_audio_path],
+                check=True,
+                timeout=alarm_seconds + 2.0,
+            )
+        except Exception as exc:
+            rospy.logwarn("Alarm audio playback failed: %s", exc)
+        remaining = alarm_seconds - (time.time() - started)
+        if remaining > 0.0:
+            time.sleep(remaining)
+
+    def create_alarm_audio(self):
+        path = "/tmp/raicom_patrol_alarm.wav"
+        alarm_seconds = float(self.config["inspection"].get("alarm_seconds", 4.0))
+        sample_rate = 16000
+        amplitude = 12000
+        frame_count = int(sample_rate * alarm_seconds)
+        with wave.open(path, "wb") as output:
+            output.setnchannels(1)
+            output.setsampwidth(2)
+            output.setframerate(sample_rate)
+            frames = bytearray()
+            for index in range(frame_count):
+                elapsed = float(index) / sample_rate
+                frequency = 880.0 if int(elapsed * 4.0) % 2 == 0 else 660.0
+                value = int(amplitude * math.sin(2.0 * math.pi * frequency * elapsed))
+                frames.extend(struct.pack("<h", value))
+            output.writeframes(bytes(frames))
+        return path
+
+    @staticmethod
+    def yaw_to_quaternion(yaw):
+        return Quaternion(0.0, 0.0, math.sin(yaw / 2.0), math.cos(yaw / 2.0))
+
+
+if __name__ == "__main__":
+    try:
+        ServiceGroupMission().run()
+    except rospy.ROSInterruptException:
+        pass
+    except Exception as exc:
+        rospy.logerr("Mission failed: %s", exc)
+        raise

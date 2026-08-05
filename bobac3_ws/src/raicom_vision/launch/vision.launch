@@ -1,0 +1,6 @@
+<launch>
+  <arg name="config_file" default="$(find raicom_vision)/config/vision.yaml"/>
+  <node pkg="raicom_vision" type="raicom_vision_node.py" name="raicom_vision" output="screen">
+    <param name="config_file" value="$(arg config_file)"/>
+  </node>
+</launch>

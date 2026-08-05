@@ -1,0 +1,97 @@
+audio:
+  sample_rate: 16000
+  block_size: 4000
+  input_device: pulse
+  output_device: alsa_output.usb-USB_AUDIO_DAC_USB_AUDIO_DAC-00.analog-stereo
+  record_seconds: 6.0
+  tts_leading_silence: 0.7
+  tts_warmup_silence: 0.3
+  output_directory: /home/yuanbao/ros_workspace/audio
+  tts_cache_directory: /home/yuanbao/ros_workspace/audio/tts_cache
+  tts_backend: edge_tts
+  tts_edge_voice: zh-CN-XiaoxiaoNeural
+  tts_edge_rate: -8%
+  tts_edge_volume: +0%
+  tts_edge_pitch: +0Hz
+  tts_edge_online_generation: true
+  tts_sherpa_speed: 0.92
+models:
+  sensevoice_model: /home/yuanbao/ros_workspace/models/sensevoice/model.int8.onnx
+  sensevoice_tokens: /home/yuanbao/ros_workspace/models/sensevoice/tokens.txt
+  vad_model: /home/yuanbao/ros_workspace/models/vad/silero_vad.onnx
+  tts_model: /home/yuanbao/ros_workspace/models/melo_tts/model.int8.onnx
+  tts_lexicon: /home/yuanbao/ros_workspace/models/melo_tts/lexicon.txt
+  tts_tokens: /home/yuanbao/ros_workspace/models/melo_tts/tokens.txt
+  tts_rule_fsts:
+  - /home/yuanbao/ros_workspace/models/melo_tts/date.fst
+  - /home/yuanbao/ros_workspace/models/melo_tts/number.fst
+wake:
+  words:
+  - 元宝
+  - 魔力元宝
+  awake_seconds: 12.0
+  reply: 我在，请讲。
+topics:
+  command: /service_group_mission/voice_command
+  transcript: /local_voice/transcript
+  intent: /local_voice/intent
+answers:
+  unknown: 我没有听懂，请再说一遍。
+  guide: 好的，请跟我来。
+  patrol: 好的，进入巡检模式。
+  cancel_navigation: 好的，已取消导航。
+navigation:
+  aliases:
+    出发区: goOrigin
+    原点: goOrigin
+    深圳: 深圳馆
+    深圳馆: 深圳馆
+    广州: 广州馆
+    上海: 上海馆
+    北京: 北京馆
+    吉林: 吉林馆
+    上海馆: 上海馆
+    北京馆: 北京馆
+    广州馆: 广州馆
+    吉林馆: 吉林馆
+    麒麟: 吉林馆
+    麒麟馆: 吉林馆
+    麒林: 吉林馆
+    麒林馆: 吉林馆
+    吉宾馆: 吉林馆
+    广: 广州馆
+    州: 广州馆
+    深: 深圳馆
+    圳: 深圳馆
+    上: 上海馆
+    海: 上海馆
+    吉: 吉林馆
+    林: 吉林馆
+    北: 北京馆
+    京: 北京馆
+    餐厅: 餐厅
+    厨房: 厨房
+    客厅: 客厅
+    卧室: 卧室
+mission_phrases:
+  welcome:
+  - 可以带我去参观一下深圳馆吗
+  - 可以带我去参观一下深圳吗
+  - 带我去参观深圳馆
+  - 带我去参观深圳
+  - 带我去深圳
+  - 去深圳馆
+  patrol:
+  - 开始执行巡检任务
+  national_guide:
+  - 可以带我参观一下吗
+  - 带我参观一下
+  smart_assistant:
+  - 给我推荐一下今天适合做什么菜
+  - 去看看冰箱里有什么
+  - 看下还剩什么菜
+  find_object:
+  - 帮我找手机
+  - 帮我找书包
+  - 帮我找背包
+  - 帮我找水瓶

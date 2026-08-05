@@ -1,0 +1,8 @@
+<launch>
+    <!-- 摄像头节点 -->
+    <include file="$(find ar_pose)/launch/usbcam_head.launch"/>
+    <node name="face_detection" pkg="face_rec" type="face_detection.py" output="screen">
+        <!-- 相机话题 -->
+        <param name="camera_topic" value="/head_camera/image_raw"/>
+    </node>
+</launch>

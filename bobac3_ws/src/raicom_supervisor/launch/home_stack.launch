@@ -1,0 +1,20 @@
+<launch>
+  <arg name="mission_type" default="auto"/>
+  <arg name="face_mode" default="any"/>
+  <arg name="voice_mode" default="topic"/>
+  <arg name="target_object" default=""/>
+
+  <include file="$(find raicom_supervisor)/launch/supervisor.launch"/>
+  <include file="$(find local_voice_bridge)/launch/local_voice.launch">
+    <arg name="continuous_listen" value="true"/>
+    <arg name="execute_intents" value="false"/>
+  </include>
+  <include unless="$(eval arg('face_mode') == 'skip')" file="$(find face_rec)/launch/face_detection.launch"/>
+  <include file="$(find raicom_vision)/launch/vision.launch"/>
+  <include file="$(find home_service_mission)/launch/home_mission.launch">
+    <arg name="mission_type" value="$(arg mission_type)"/>
+    <arg name="face_mode" value="$(arg face_mode)"/>
+    <arg name="voice_mode" value="$(arg voice_mode)"/>
+    <arg name="target_object" value="$(arg target_object)"/>
+  </include>
+</launch>

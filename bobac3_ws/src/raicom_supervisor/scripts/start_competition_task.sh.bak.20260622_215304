@@ -1,0 +1,69 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+TASK="${1:-}"
+TARGET_OBJECT="${2:-}"
+
+if [[ -z "${TASK}" ]]; then
+  echo "Usage: start_competition_task.sh provincial_welcome|provincial_patrol"
+  exit 2
+fi
+
+source /opt/ros/noetic/setup.bash
+source /home/yuanbao/bobac3_ws/devel/setup.bash
+source /home/yuanbao/ros_workspace/devel/setup.bash --extend
+
+pactl set-default-source alsa_input.usb-Generalplus_Usb_Audio_Device-00.mono-fallback
+pactl set-source-volume alsa_input.usb-Generalplus_Usb_Audio_Device-00.mono-fallback 33%
+amixer -c 2 sset Mic 10 cap >/dev/null
+pactl set-default-sink alsa_output.usb-USB_AUDIO_DAC_USB_AUDIO_DAC-00.analog-stereo
+pactl set-sink-volume alsa_output.usb-USB_AUDIO_DAC_USB_AUDIO_DAC-00.analog-stereo 100%
+
+for node in \
+  /raicom_supervisor \
+  /raicom_vision \
+  /local_voice_node \
+  /face_detection \
+  /face_rec_service \
+  /head_camera \
+  /service_group_welcome_mission \
+  /service_group_patrol_mission \
+  /home_service_mission
+do
+  rosnode kill "${node}" >/dev/null 2>&1 || true
+done
+
+case "${TASK}" in
+  provincial_welcome|selection_welcome)
+    exec roslaunch raicom_supervisor selection_welcome_stack.launch
+    ;;
+  provincial_patrol|selection_patrol)
+    exec roslaunch raicom_supervisor selection_patrol_stack.launch
+    ;;
+  home_auto)
+    rosrun home_service_mission home_config_check.py
+    exec roslaunch raicom_supervisor home_stack.launch mission_type:=auto
+    ;;
+  home_guide)
+    rosrun home_service_mission home_config_check.py
+    exec roslaunch raicom_supervisor home_stack.launch mission_type:=guide
+    ;;
+  home_assistant)
+    rosrun home_service_mission home_config_check.py
+    exec roslaunch raicom_supervisor home_stack.launch mission_type:=assistant
+    ;;
+  home_find)
+    if [[ "${TARGET_OBJECT}" != "cell phone" && "${TARGET_OBJECT}" != "backpack" && "${TARGET_OBJECT}" != "water bottle" ]]; then
+      echo "home_find target must be: cell phone, backpack, or water bottle"
+      exit 2
+    fi
+    rosrun home_service_mission home_config_check.py
+    exec roslaunch raicom_supervisor home_stack.launch \
+      mission_type:=find_object \
+      target_object:="${TARGET_OBJECT}"
+    ;;
+  *)
+    echo "Unknown task: ${TASK}"
+    exit 2
+    ;;
+esac
