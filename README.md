@@ -1,6 +1,8 @@
 # RAICOM Yuanbao Service Robot Source
 
-This package contains the ROS source code extracted from the competition VM.
+## 🎬 项目演示
+
+[![Bilibili 演示视频](https://img.shields.io/badge/Bilibili-点击观看项目演示-00A1D6?logo=bilibili&logoColor=white)](https://www.bilibili.com/video/BV15JMB6pEbS/)
 
 ## Layout
 
@@ -25,3 +27,5 @@ source devel/setup.bash --extend
 ## Notes
 
 Large runtime files such as logs, videos, cached audio, build outputs, and model weights are intentionally not included.
+
+
