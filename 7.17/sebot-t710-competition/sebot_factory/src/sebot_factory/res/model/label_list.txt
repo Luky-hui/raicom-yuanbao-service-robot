@@ -1,6 +1,0 @@
-block
-nut
-order
-pcb
-screw
-tape
