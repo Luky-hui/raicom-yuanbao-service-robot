@@ -1,0 +1,604 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- This URDF was automatically created by SolidWorks to URDF Exporter! Originally created by Stephen Brawner (brawner@gmail.com) 
+     Commit Version: 1.5.1-0-g916b5db  Build Version: 1.5.7152.31018
+     For more information, please see http://wiki.ros.org/sw_urdf_exporter -->
+<robot
+  name="sebot_urdf">
+
+  <link
+    name="base_footprint">
+    <inertial>
+      <origin
+        xyz="0.050134 0.0042664 0.52581"
+        rpy="0 0 0" />
+      <mass
+        value="3.6816" />
+      <inertia
+        ixx="0.060503"
+        ixy="1.2725E-06"
+        ixz="0.00072031"
+        iyy="0.052944"
+        iyz="-2.2079E-05"
+        izz="0.03703" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://sebot_urdf/meshes/base_footprint.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.29804 0.29804 0.29804 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://sebot_urdf/meshes/base_footprint.STL" />
+      </geometry>
+    </collision>
+  </link>
+
+  <link name="imu" />
+
+  <joint name="imu" type="fixed">
+    <origin rpy="0 0 0" xyz="0 0 0" />
+    <parent link="base_footprint"/>
+    <child link="imu" />
+  </joint>
+
+
+  <link
+    name="x_wheel1">
+    <inertial>
+      <origin
+        xyz="5.0062E-08 0.014598 -2.3165E-05"
+        rpy="0 0 0" />
+      <mass
+        value="0.13245" />
+      <inertia
+        ixx="0.00012046"
+        ixy="-4.3968E-12"
+        ixz="-6.6674E-11"
+        iyy="0.00022052"
+        iyz="1.2318E-09"
+        izz="0.00012049" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://sebot_urdf/meshes/x_wheel1.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="1 1 1 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://sebot_urdf/meshes/x_wheel1.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="x_wheel1"
+    type="continuous">
+    <origin
+      xyz="0.115 0.182 0.0295"
+      rpy="0 0 -3.1416" />
+    <parent
+      link="base_footprint" />
+    <child
+      link="x_wheel1" />
+    <axis
+      xyz="0 -1 0" />
+  </joint>
+  <link
+    name="x_wheel2">
+    <inertial>
+      <origin
+        xyz="-5.0062E-08 -0.014598 -2.3165E-05"
+        rpy="0 0 0" />
+      <mass
+        value="0.13245" />
+      <inertia
+        ixx="0.00012046"
+        ixy="-4.3968E-12"
+        ixz="6.6674E-11"
+        iyy="0.00022052"
+        iyz="-1.2318E-09"
+        izz="0.00012049" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://sebot_urdf/meshes/x_wheel2.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="1 1 1 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://sebot_urdf/meshes/x_wheel2.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="x_wheel2"
+    type="continuous">
+    <origin
+      xyz="0.115 -0.182 0.0295"
+      rpy="0 0 -3.1416" />
+    <parent
+      link="base_footprint" />
+    <child
+      link="x_wheel2" />
+    <axis
+      xyz="0 -1 0" />
+  </joint>
+  <link
+    name="x_wheel3">
+    <inertial>
+      <origin
+        xyz="5.0062E-08 0.014598 -2.3165E-05"
+        rpy="0 0 0" />
+      <mass
+        value="0.13245" />
+      <inertia
+        ixx="0.00012046"
+        ixy="-4.3968E-12"
+        ixz="-6.6674E-11"
+        iyy="0.00022052"
+        iyz="1.2318E-09"
+        izz="0.00012049" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://sebot_urdf/meshes/x_wheel3.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="1 1 1 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://sebot_urdf/meshes/x_wheel3.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="x_wheel3"
+    type="continuous">
+    <origin
+      xyz="-0.115 0.182 0.0295"
+      rpy="0 0 3.1416" />
+    <parent
+      link="base_footprint" />
+    <child
+      link="x_wheel3" />
+    <axis
+      xyz="0 -1 0" />
+  </joint>
+  <link
+    name="x_wheel4">
+    <inertial>
+      <origin
+        xyz="-5.0062E-08 -0.014598 -2.3165E-05"
+        rpy="0 0 0" />
+      <mass
+        value="0.13245" />
+      <inertia
+        ixx="0.00012046"
+        ixy="-4.3968E-12"
+        ixz="6.6674E-11"
+        iyy="0.00022052"
+        iyz="-1.2318E-09"
+        izz="0.00012049" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://sebot_urdf/meshes/x_wheel4.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="1 1 1 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://sebot_urdf/meshes/x_wheel4.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="x_wheel4"
+    type="continuous">
+    <origin
+      xyz="-0.115 -0.182 0.0295"
+      rpy="0 0 3.1416" />
+    <parent
+      link="base_footprint" />
+    <child
+      link="x_wheel4" />
+    <axis
+      xyz="0 -1 0" />
+  </joint>
+  <link
+    name="laser">
+    <inertial>
+      <origin
+        xyz="0.1 0.0048121 0.0023608"
+        rpy="0 0 0" />
+      <mass
+        value="0.010451" />
+      <inertia
+        ixx="3.2912E-06"
+        ixy="-4.1483E-08"
+        ixz="2.2028E-09"
+        iyy="3.1516E-06"
+        iyz="-2.0341E-08"
+        izz="5.7796E-06" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://sebot_urdf/meshes/laser.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.48627 0.48627 0.48627 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://sebot_urdf/meshes/laser.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="laser"
+    type="fixed">
+    <origin
+      xyz="0.1 0 0.1519"
+      rpy="0 0 -3.1416" />
+    <parent
+      link="base_footprint" />
+    <child
+      link="laser" />
+    <axis
+      xyz="0 0 0" />
+  </joint>
+  <link
+    name="msgUltraLF">
+    <inertial>
+      <origin
+        xyz="-0.0044296 -0.0015911 -0.00024981"
+        rpy="0 0 0" />
+      <mass
+        value="0.0063366" />
+      <inertia
+        ixx="1.0371E-06"
+        ixy="6.6201E-09"
+        ixz="4.7616E-10"
+        iyy="1.0326E-06"
+        iyz="-1.2739E-09"
+        izz="2.5129E-07" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://sebot_urdf/meshes/ultraLF.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="1 1 1 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://sebot_urdf/meshes/ultraLF.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="msgUltraLF"
+    type="fixed">
+    <origin
+      xyz="0.20177 0.1253 0.0415"
+      rpy="0 0 0.25" />
+    <parent
+      link="base_footprint" />
+    <child
+      link="msgUltraLF" />
+    <axis
+      xyz="0 0 0" />
+  </joint>
+  <link
+    name="msgUltraMF">
+    <inertial>
+      <origin
+        xyz="-0.0047067 1.99E-05 -0.00024981"
+        rpy="0 0 0" />
+      <mass
+        value="0.0063366" />
+      <inertia
+        ixx="1.0408E-06"
+        ixy="3.6468E-09"
+        ixz="1.1758E-11"
+        iyy="1.0289E-06"
+        iyz="-1.3599E-09"
+        izz="2.5129E-07" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://sebot_urdf/meshes/ultraMF.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="1 1 1 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://sebot_urdf/meshes/ultraMF.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="msgUltraMF"
+    type="fixed">
+    <origin
+      xyz="0.2255 0 0.0415"
+      rpy="0 0 0" />
+    <parent
+      link="base_footprint" />
+    <child
+      link="msgUltraMF" />
+    <axis
+      xyz="0 0 0" />
+  </joint>
+  <link
+    name="msgUltraRF">
+    <inertial>
+      <origin
+        xyz="-0.0044296 0.0015911 -0.00025026"
+        rpy="0 0 0" />
+      <mass
+        value="0.0063366" />
+      <inertia
+        ixx="1.0371E-06"
+        ixy="-6.6201E-09"
+        ixz="-4.7616E-10"
+        iyy="1.0326E-06"
+        iyz="-1.2739E-09"
+        izz="2.5129E-07" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://sebot_urdf/meshes/ultraRF.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="1 1 1 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://sebot_urdf/meshes/ultraRF.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="msgUltraRF"
+    type="fixed">
+    <origin
+      xyz="0.20177 -0.1253 0.0415"
+      rpy="0 0 -0.25" />
+    <parent
+      link="base_footprint" />
+    <child
+      link="msgUltraRF" />
+    <axis
+      xyz="0 0 0" />
+  </joint>
+  <link
+    name="msgUltraMB">
+    <inertial>
+      <origin
+        xyz="0.0047067 -1.99E-05 -0.00024981"
+        rpy="0 0 1.57" />
+      <mass
+        value="0.0063366" />
+      <inertia
+        ixx="1.0408E-06"
+        ixy="3.6468E-09"
+        ixz="-1.1758E-11"
+        iyy="1.0289E-06"
+        iyz="1.3599E-09"
+        izz="2.5129E-07" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://sebot_urdf/meshes/ultraMB.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="1 1 1 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://sebot_urdf/meshes/ultraMB.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="msgUltraMB"
+    type="fixed">
+    <origin
+      xyz="-0.2255 0 0.0465"
+      rpy="0 0 -3.1416" />
+    <parent
+      link="base_footprint" />
+    <child
+      link="msgUltraMB" />
+    <axis
+      xyz="0 0 0" />
+  </joint>
+  <link
+    name="camera">
+    <inertial>
+      <origin
+        xyz="-0.02317 -6.8322E-05 -0.025344"
+        rpy="0 0 0" />
+      <mass
+        value="0.29454" />
+      <inertia
+        ixx="0.00075867"
+        ixy="-1.3348E-08"
+        ixz="-1.9588E-05"
+        iyy="0.00021358"
+        iyz="-1.8116E-07"
+        izz="0.00073416" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://sebot_urdf/meshes/camera.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.29804 0.29804 0.29804 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://sebot_urdf/meshes/camera.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="camera"
+    type="fixed">
+    <origin
+      xyz="0.0995 0 1.0783"
+      rpy="0 0 0" />
+    <parent
+      link="base_footprint" />
+    <child
+      link="camera" />
+    <axis
+      xyz="0 0 0" />
+  </joint>
+
+  <link name="camera_depth_frame" />
+  <joint name="camera_depth_frame" type="fixed">
+    <origin rpy="0 0 0" xyz="0 0 0" />
+    <parent link="camera"/>
+    <child link="camera_depth_frame" />
+  </joint>
+
+
+  <link name="camera_depth_optical_frame" />
+  <joint name="camera_depth_optical_frame" type="fixed">
+    <origin rpy="-1.57079632679 0 -1.57079632679" xyz="0 0 0" />
+    <parent link="camera_depth_frame"/>
+    <child link="camera_depth_optical_frame" />
+  </joint>
+
+</robot>

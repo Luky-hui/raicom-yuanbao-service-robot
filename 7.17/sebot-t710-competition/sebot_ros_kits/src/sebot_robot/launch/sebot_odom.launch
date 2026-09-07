@@ -1,0 +1,21 @@
+<launch> 
+    <!-- 启动机器人的控制节点 -->
+    <node pkg="sebot_robot" type="sebot_controller" name="sebot_controller" respawn="true">
+        <!-- 是否发布传感器话题 value：true发布 false不发布 -->
+        <param name="ultraEnale"   type="bool" value="false"/>      <!-- 超声波使能 -->
+        <param name="odomEnable"    type="bool" value="true"/>      <!-- 里程计使能 -->
+        <param name="imuEnable"     type="bool" value="true"/>      <!-- imu使能 -->
+    </node>
+    
+    <!-- 机器人陀螺仪坐标系和底盘坐标系的位置关系 -->
+    <node pkg="tf" type="static_transform_publisher" name="base_to_imu" args="0 0 0 0 0 0 base_footprint  imu  30" respawn="true"/>
+
+    <!-- 启动融合里程计 -->
+    <include file = "$(find robot_pose_ekf)/launch/robot_pose_ekf.launch"/>
+
+    <!-- 启动遥控手柄控制结点 -->
+    <node pkg="sebot_robot" type="sebot_joystick" name="sebot_joystick" respawn="true"/>
+
+    <!-- 启动rviz监视机器人 -->
+    <node pkg = "rviz" type = "rviz" name = "rviz" args = "-d $(find sebot_robot)/rviz/odom.rviz"/>
+</launch> 

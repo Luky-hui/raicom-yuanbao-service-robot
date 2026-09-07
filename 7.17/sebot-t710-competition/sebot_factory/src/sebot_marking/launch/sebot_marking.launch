@@ -1,0 +1,11 @@
+<launch>
+    <!-- 发布已建好的地图文件 -->
+    <node name="map_server" pkg="map_server" type="map_server" args="$(find sebot_navigation)/map/map.yaml" respawn="true">
+      <param name="frame_id" value="/map"/>
+    </node>
+    
+    <!-- 启动机器人图形化控制界面 -->
+    <node pkg = "sebot_marking" type = "sebot_marking"   name = "sebot_marking" >
+      <param name="pathXml" value="$(find sebot_factory)/res/location.xml"/> <!-- xml文件保存地址 -->
+    </node>
+</launch>

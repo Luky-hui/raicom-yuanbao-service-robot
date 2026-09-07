@@ -1,0 +1,375 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<robot name="sebot_talon">
+    <link name="world" />
+    <joint name="virtual_joint" type="fixed">
+      <parent link="world" />
+      <child link="base_link" />
+    </joint>
+
+    <link name="base_link">
+        
+<inertial>
+            <origin xyz="0.0021259 -0.00011705 0.023382" rpy="0 0 0" />
+            <mass value="0.47227" />
+            <inertia ixx="0.00030812" ixy="-3.9845E-07" ixz="-4.2341E-05" iyy="0.0003688" iyz="4.9094E-07" izz="0.00052499" />
+        </inertial>
+
+        <visual>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <geometry>
+                <mesh filename="package://sebot_talon/meshes/base_link.STL" />
+            </geometry>
+            <material name="">
+                <color rgba="0.48627 0.48627 0.48627 1" />
+
+            </material>
+        </visual>
+        <collision>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <geometry>
+                <mesh filename="package://sebot_talon/meshes/base_link.STL" />
+            </geometry>
+        </collision>
+    </link>
+    <link name="Link_1">
+        
+<inertial>
+            <origin xyz="2.6339E-05 0.0050558 0.033539" rpy="0 0 0" />
+            <mass value="0.32612" />
+            <inertia ixx="9.7422E-05" ixy="2.3644E-07" ixz="-6.5785E-08" iyy="0.00014278" iyz="-6.8471E-06" izz="9.1898E-05" />
+        </inertial>
+
+        <visual>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <geometry>
+                <mesh filename="package://sebot_talon/meshes/Link_1.STL" />
+            </geometry>
+            <material name="">
+                <color rgba="0.48627 0.48627 0.48627 1" />
+            </material>
+        </visual>
+        <collision>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <geometry>
+                <mesh filename="package://sebot_talon/meshes/Link_1.STL" />
+            </geometry>
+        </collision>
+    </link>
+    <joint name="joint_1" type="revolute">
+        <origin xyz="0 0 0.049" rpy="0 0 0" />
+        <parent link="base_link" />
+        <child link="Link_1" />
+        <axis xyz="0 0 1" />
+        <limit lower="-3.1416" upper="3.1416" effort="30" velocity="1.0" />
+    </joint>
+    <link name="Link_2">
+        
+<inertial>
+            <origin xyz="0.10211 0.017087 -0.0059201" rpy="0 0 0" />
+            <mass value="0.1819" />
+            <inertia ixx="9.2502E-05" ixy="-1.964E-05" ixz="-6.6522E-07" iyy="0.00020612" iyz="-1.0257E-07" izz="0.00021987" />
+        </inertial>
+
+        <visual>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <geometry>
+                <mesh filename="package://sebot_talon/meshes/Link_2.STL" />
+            </geometry>
+            <material name="">
+                <color rgba="0.48627 0.48627 0.48627 1" />
+
+            </material>
+        </visual>
+        <collision>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <geometry>
+                <mesh filename="package://sebot_talon/meshes/Link_2.STL" />
+            </geometry>
+        </collision>
+    </link>
+    <joint name="joint_2" type="revolute">
+        <origin xyz="-0.00010967 -0.021 0.036" rpy="1.5708 0 0" />
+        <parent link="Link_1" />
+        <child link="Link_2" />
+        <axis xyz="-0.0052225 0 0.99999" />
+        <limit lower="-3.1416" upper="3.1416" effort="30" velocity="1.0" />
+    </joint>
+    <link name="Link_3">
+        
+<inertial>
+            <origin xyz="0.0777 0.068515 -0.023563" rpy="0 0 0" />
+            <mass value="0.76161" />
+            <inertia ixx="0.00032275" ixy="-5.6404E-05" ixz="-7.4367E-07" iyy="0.00033691" iyz="-2.9457E-07" izz="0.00046514" />
+        </inertial>
+
+        <visual>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <geometry>
+                <mesh filename="package://sebot_talon/meshes/Link_3.STL" />
+            </geometry>
+            <material name="">
+                <color rgba="0.48627 0.48627 0.48627 1" />
+
+            </material>
+        </visual>
+        <collision>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <geometry>
+                <mesh filename="package://sebot_talon/meshes/Link_3.STL" />
+            </geometry>
+        </collision>
+    </link>
+    <joint name="joint_3" type="revolute">
+        <origin xyz="0.20416 0.034174 0.0010662" rpy="0 0 0" />
+        <parent link="Link_2" />
+        <child link="Link_3" />
+        <axis xyz="-0.0052225 0 0.99999" />
+        <limit lower="-3.1416" upper="3.1416" effort="30" velocity="1.0" />
+    </joint>
+    <link name="Link_4">
+        
+<inertial>
+            <origin xyz="0.053564 -0.0008026 -0.015318" rpy="0 0 0" />
+            <mass value="0.34355" />
+            <inertia ixx="0.00014263" ixy="-6.9264E-07" ixz="4.2702E-06" iyy="9.7239E-05" iyz="-1.0868E-08" izz="0.00010495" />
+        </inertial>
+
+        <visual>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <geometry>
+                <mesh filename="package://sebot_talon/meshes/Link_4.STL" />
+            </geometry>
+            <material name="">
+                <color rgba="0.48627 0.48627 0.48627 1" />
+
+            </material>
+        </visual>
+        <collision>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <geometry>
+                <mesh filename="package://sebot_talon/meshes/Link_4.STL" />
+            </geometry>
+        </collision>
+    </link>
+    <joint name="joint_4" type="revolute">
+        <origin xyz="0.15515 0.13703 0.00081027" rpy="0 0 0" />
+        <parent link="Link_3" />
+        <child link="Link_4" />
+        <axis xyz="-0.0052225 0 0.99999" />
+        <limit lower="-3.1416" upper="3.1416" effort="30" velocity="1.0" />
+    </joint>
+    <link name="Link_5">
+        
+<inertial>
+            <origin xyz="-4.0669E-05 -0.000426 0.029059" rpy="0 0 0" />
+            <mass value="0.30904" />
+            <inertia ixx="7.98E-05" ixy="-5.2929E-08" ixz="-9.0805E-08" iyy="8.0155E-05" iyz="-7.2933E-07" izz="0.00013136" />
+        </inertial>
+
+        <visual>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <geometry>
+                <mesh filename="package://sebot_talon/meshes/Link_5.STL" />
+            </geometry>
+            <material name="">
+                <color rgba="0.48627 0.48627 0.48627 1" />
+
+            </material>
+        </visual>
+        <collision>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <geometry>
+                <mesh filename="package://sebot_talon/meshes/Link_5.STL" />
+            </geometry>
+        </collision>
+    </link>
+    <joint name="joint_5" type="revolute">
+        <origin xyz="0.085584 -0.0012382 -0.017553" rpy="0 1.5708 0" />
+        <parent link="Link_4" />
+        <child link="Link_5" />
+        <axis xyz="-0.0052219 -0.014482 0.99988" />
+        <limit lower="-3.1416" upper="3.1416" effort="30" velocity="1.0" />
+    </joint>
+    <link name="Link_6">
+        
+<inertial>
+            <origin xyz="-0.0012827 -0.00042226 0.022836" rpy="0 0 0" />
+            <mass value="0.070496" />
+            <inertia ixx="8.8029E-07" ixy="-1.8984E-06" ixz="-1.6602E-07" iyy="2.8204E-05" iyz="-1.1171E-08" izz="2.8328E-05" />
+        </inertial>
+
+        <visual>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <geometry>
+                <mesh filename="package://sebot_talon/meshes/Link_6.STL" />
+            </geometry>
+            <material name="">
+                <color rgba="0.48627 0.48627 0.48627 1" />
+
+            </material>
+        </visual>
+        <collision>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <geometry>
+                <mesh filename="package://sebot_talon/meshes/Link_6.STL" />
+            </geometry>
+        </collision>
+    </link>
+    <joint name="joint_6" type="revolute">
+        <origin xyz="-0.00029243 -0.00081097 0.055993" rpy="0 0 0" />
+        <parent link="Link_5" />
+        <child link="Link_6" />
+        <axis xyz="-0.0052219 -0.014482 0.99988" />
+        <limit lower="-3.1416" upper="3.1416" effort="30" velocity="1.0" />
+    </joint>
+    <link name="Link_7">
+        
+<inertial>
+            <origin xyz="0.026419 0.0019054 -0.0095199" rpy="0 0 0" />
+            <mass value="0.031246" />
+            <inertia ixx="3.6107E-06" ixy="2.077E-06" ixz="4.1415E-06" iyy="3.337E-05" iyz="-2.4464E-07" izz="3.3894E-05" />
+        </inertial>
+
+        <visual>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <geometry>
+                <mesh filename="package://sebot_talon/meshes/Link_7.STL" />
+            </geometry>
+            <material name="">
+                <color rgba="0.48627 0.48627 0.48627 1" />
+
+            </material>
+        </visual>
+        <collision>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <geometry>
+                <mesh filename="package://sebot_talon/meshes/Link_7.STL" />
+            </geometry>
+        </collision>
+    </link>
+    <joint name="joint_7" type="prismatic">
+        <origin xyz="-0.032415 -0.0025901 0.023796" rpy="3.1416 -1.5708 0" />
+        <parent link="Link_6" />
+        <child link="Link_7" />
+        <axis xyz="-0.0062133 -0.069281 0.99758" />
+        <limit lower="0.00" upper="0.03" effort="30" velocity="1.0" />
+    </joint>
+    <link name="Link_8">
+        
+<inertial>
+            <origin xyz="0.026297 0.00054845 0.010019" rpy="0 0 0" />
+            <mass value="0.031246" />
+            <inertia ixx="3.7145E-06" ixy="2.6528E-06" ixz="-4.1893E-06" iyy="3.3309E-05" iyz="1.9977E-07" izz="3.3852E-05" />
+        </inertial>
+
+        <visual>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <geometry>
+                <mesh filename="package://sebot_talon/meshes/Link_8.STL" />
+            </geometry>
+            <material name="">
+                <color rgba="0.48627 0.48627 0.48627 1" />
+
+            </material>
+        </visual>
+        <collision>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <geometry>
+                <mesh filename="package://sebot_talon/meshes/Link_8.STL" />
+            </geometry>
+        </collision>
+    </link>
+    <joint name="joint_8" type="prismatic">
+        <origin xyz="0.032165 0.001895 0.024198" rpy="3.1416 -1.5708 0" />
+        <parent link="Link_6" />
+        <child link="Link_8" />
+        <axis xyz="-0.0062133 -0.069281 0.99758" />
+        <limit lower="-0.03" upper="0.0" effort="30" velocity="1.0" />
+    </joint>
+    
+<transmission name="trans_joint_1">
+        <type>transmission_interface/SimpleTransmission</type>
+        <joint name="joint_1">
+            <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
+        </joint>
+        <actuator name="joint_1_motor">
+            <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
+            <mechanicalReduction>1</mechanicalReduction>
+        </actuator>
+    </transmission>
+    <transmission name="trans_joint_2">
+        <type>transmission_interface/SimpleTransmission</type>
+        <joint name="joint_2">
+            <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
+        </joint>
+        <actuator name="joint_2_motor">
+            <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
+            <mechanicalReduction>1</mechanicalReduction>
+        </actuator>
+    </transmission>
+    <transmission name="trans_joint_3">
+        <type>transmission_interface/SimpleTransmission</type>
+        <joint name="joint_3">
+            <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
+        </joint>
+        <actuator name="joint_3_motor">
+            <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
+            <mechanicalReduction>1</mechanicalReduction>
+        </actuator>
+    </transmission>
+    <transmission name="trans_joint_4">
+        <type>transmission_interface/SimpleTransmission</type>
+        <joint name="joint_4">
+            <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
+        </joint>
+        <actuator name="joint_4_motor">
+            <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
+            <mechanicalReduction>1</mechanicalReduction>
+        </actuator>
+    </transmission>
+    <transmission name="trans_joint_5">
+        <type>transmission_interface/SimpleTransmission</type>
+        <joint name="joint_5">
+            <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
+        </joint>
+        <actuator name="joint_5_motor">
+            <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
+            <mechanicalReduction>1</mechanicalReduction>
+        </actuator>
+    </transmission>
+    <transmission name="trans_joint_6">
+        <type>transmission_interface/SimpleTransmission</type>
+        <joint name="joint_6">
+            <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
+        </joint>
+        <actuator name="joint_6_motor">
+            <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
+            <mechanicalReduction>1</mechanicalReduction>
+        </actuator>
+    </transmission>
+    <transmission name="trans_joint_7">
+        <type>transmission_interface/SimpleTransmission</type>
+        <joint name="joint_7">
+            <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
+        </joint>
+        <actuator name="joint_7_motor">
+            <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
+            <mechanicalReduction>1</mechanicalReduction>
+        </actuator>
+    </transmission>
+    <transmission name="trans_joint_8">
+        <type>transmission_interface/SimpleTransmission</type>
+        <joint name="joint_8">
+            <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
+        </joint>
+        <actuator name="joint_8_motor">
+            <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
+            <mechanicalReduction>1</mechanicalReduction>
+        </actuator>
+    </transmission>
+    <gazebo>
+        <plugin name="gazebo_ros_control" filename="libgazebo_ros_control.so">
+            <robotNamespace>/</robotNamespace>
+        </plugin>
+    </gazebo>
+</robot>

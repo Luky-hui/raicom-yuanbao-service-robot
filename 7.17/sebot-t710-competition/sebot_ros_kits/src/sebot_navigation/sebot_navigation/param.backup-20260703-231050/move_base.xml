@@ -1,0 +1,42 @@
+<!-- 选择全局路径的规划插件：
+—— navfn:ROS中比较旧的代码实现了dijkstra和A*全局规划算法。
+—— global_planner:重新实现了Dijkstra和A*全局规划算法,可以看作navfn的改进版。
+—— parrot_planner:一种简单的算法实现全局路径规划算法。
+选择局部路径的规划插件：
+——base_local_planner:实现了Trajectory Rollout和DWA两种局部规划算法。
+——dwa_local_planner:实现了DWA局部规划算法，可以看作是base_local_planner的改进版本 
+-->
+<launch>
+    <arg name="odom_frame_id"   default="odom_combined"/>        <!-- 代价地图中的全局坐标系 -->  
+    <arg name="global_frame_id" default="map"/>
+    <arg name="map_topic"       default="/map"/>
+
+    <!-- 启动move_base机器人移动节点 -->
+    <node pkg="move_base" type="move_base" name="move_base" output="screen" respawn="true" >
+        <!-- 配置代价地图的公共属性 -->
+        <rosparam file="$(find sebot_navigation)/param/costmap_common_params.yaml" command="load" ns="global_costmap"/>
+        <rosparam file="$(find sebot_navigation)/param/costmap_common_params.yaml" command="load" ns="local_costmap"/>   
+
+        <!-- 配置全局代价地图和路径规划器 -->  
+        <rosparam file="$(find sebot_navigation)/param/costmap_global_params.yaml" command="load" />
+        <rosparam file="$(find sebot_navigation)/param/planner_global_params.yaml" command="load" />
+
+        <!-- 配置局部代价地图和路径规划器 -->
+        <rosparam file="$(find sebot_navigation)/param/costmap_local_params.yaml"  command="load" />
+        <rosparam file="$(find sebot_navigation)/param/planner_local_params.yaml"  command="load" />
+
+        <!-- 配置路径规划器（启动move_base）软件包 -->
+        <rosparam file="$(find sebot_navigation)/param/move_base_params.yaml"      command="load" />
+
+        <!-- 设置代价地图中的坐标系 -->
+        <param name="global_costmap/global_frame"     value="$(arg global_frame_id)"/>      <!-- 指定全局代价地图的全局坐标系 -->
+        <param name="global_costmap/robot_base_frame" value="base_footprint"/>              <!-- 指定全局代价地图的机器人坐标系 -->
+        <param name="local_costmap/global_frame"      value="$(arg odom_frame_id)"/>        <!-- 指定局部代价地图的全局坐标系-->
+        <param name="local_costmap/robot_base_frame"  value="base_footprint"/>              <!-- 指定局部代价地图的机器人坐标系 -->
+        <param name="DWAPlannerROS/global_frame_id"   value="$(arg odom_frame_id)"/>
+        
+        <remap from="/cmd_vel" to="/cmd_vel"/>          <!-- cmd_vel速控话题 -->
+        <remap from="/odom" to="/odom_combined"/>       <!-- odom里程计话题 -->
+        <remap from="/map" to="$(arg map_topic)"/>      <!-- 地图话题 -->
+    </node>
+</launch>

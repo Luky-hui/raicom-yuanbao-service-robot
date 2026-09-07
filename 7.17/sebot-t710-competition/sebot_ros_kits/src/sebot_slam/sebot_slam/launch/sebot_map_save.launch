@@ -1,0 +1,5 @@
+<!-- 保存地图 -->
+<launch>
+    <!-- 启动仿真监控界面 -->
+    <node pkg="map_server" type="map_saver" name="map_server" args="-f $(find sebot_navigation)/map/map"/>
+</launch>

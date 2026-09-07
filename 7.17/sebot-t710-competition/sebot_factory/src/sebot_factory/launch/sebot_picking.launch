@@ -1,0 +1,44 @@
+<launch>
+    <!-- 启动机器人的控制节点 -->
+    <node pkg="sebot_robot" type="sebot_controller" name="sebot_controller" respawn="true">
+        <!-- 是否发布传感器话题 value：true发布 false不发布 -->
+        <param name="ultraEnale"   type="bool" value="false"/>      <!-- 超声波使能 -->
+        <param name="odomEnable"    type="bool" value="false"/>      <!-- 里程计使能 -->
+        <param name="imuEnable"     type="bool" value="false"/>      <!-- imu使能 -->
+    </node>
+
+    <!-- 启动激光雷达 -->
+    <include file = "$(find rplidar_ros)/launch/rplidar.launch" />
+
+    <!-- 启动需求确认服务 -->
+    <node pkg="sebot_factory" type="sebot_picking" name="sebot_picking" output="screen" respawn="true">
+        <param name="pidPoseKp"  value="12.0"/>         <!-- 方向PID：比例系数 -->
+        <param name="pidPoseKi"  value="5.0"/>          <!-- 方向PID：积分系数 -->
+        <param name="pidPoseKd"  value="10.0"/>         <!-- 方向PID：微分系数 -->
+        
+        <param name="pidDisKp"  value="5.0"/>           <!-- 距离PID：比例系数 -->
+        <param name="pidDisKi"  value="0.3"/>           <!-- 距离PID：积分系数 -->
+        <param name="pidDisKd"  value="0.0"/>           <!-- 距离PID：微分系数 -->
+
+        <param name="pidLocalKp"  value="0.001"/>        <!-- 位置PID：比例系数 -->
+        <param name="pidLocalKi"  value="0.00012"/>      <!-- 位置PID：积分系数 -->
+        <param name="pidLocalKd"  value="0.003"/>       <!-- 位置PID：微分系数 -->
+
+	    <param name="pidClawXKp"  value="0.00002"/>       <!-- 机械爪PID：比例系数 -->
+        <param name="pidClawXKi"  value="0.000055"/>     <!-- 机械爪PID：积分系数 -->
+        <param name="pidClawXKd"  value="0.0005"/>       <!-- 机械爪PID：微分系数 -->
+        <param name="pidClawYKp"  value="0.0001"/>       <!-- 机械爪PID：比例系数 -->
+        <param name="pidClawYKi"  value="0.00025"/>     <!-- 机械爪PID：积分系数 -->
+        <param name="pidClawYKd"  value="0.0005"/>       <!-- 机械爪PID：微分系数 -->
+        
+        <param name="disClaw"  value="0.4"/>            <!-- 机械爪夹取零件距离：m（需要+激光雷达盲区20cm） -->
+        <param name="disPick"  value="0.7"/>            <!-- 机械臂抓取零件距离：m（需要+激光雷达盲区20cm） -->
+        <param name="disSearch"  value="0.85"/>          <!-- AI搜索零件距离：m（需要+激光雷达盲区20cm） -->
+
+        <param name="sencePick"  value="1"/>             <!-- 1：抓取零件场景 | 2：放置零件场景 | 3：机械爪跟随零件控制 -->
+        <param name="debug" type="bool" value="true"/>   <!-- 调试标志：显示AI图像 -->
+        <param name="food"  value="pcb" />            <!-- 抓取/放置零件： nut 螺钉  screw 螺母 pcb 汉堡 block 端子排 tape 绝缘胶带 sundae 圣代-->
+    </node>
+
+</launch>
+

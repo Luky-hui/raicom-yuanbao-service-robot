@@ -1,0 +1,23 @@
+<launch>
+    <arg name="map_topic"       default="map"/>      <!-- 地图话题名称 -->
+    <arg name="debug"           default="false"/>    <!-- 是否打印debug信息 -->
+    <arg name="audio"           default="true"/>     <!-- 是否语音播报 -->
+    <arg name="visualize"       default="true"/>     <!-- 指定是否发布在rviz上显示的可视化边界 -->
+    <arg name="global_frame"    default="map"/>      <!-- 机器人参考坐标系名称，如map，odom -->
+    
+    <!-- 运行explore_lite自主建图算法 -->
+    <node pkg="sebot_slam" type="auto_slam" respawn="false" name="auto_slam" output="screen">
+        <param name="debug"                 value="$(arg debug)"/>        <!-- 是否打印debug信息 -->
+        <param name="audio"                 value="$(arg audio)"/>        <!-- 是否语音播报 -->
+        <param name="visualize"             value="$(arg visualize)"/>    <!-- 指定是否发布在rviz上显示的可视化边界 -->
+        <param name="map_topic"             value="$(arg map_topic)"/>    <!-- 地图话题(真实时为: map 仿真时为: slam_map) -->
+        <param name="robot_base_frame"      value="base_footprint"/>      <!-- 机器人底盘坐标系 -->
+        <param name="global_frame"          value="$(arg global_frame)"/> <!-- 机器人参考坐标系名称，如map，odom -->
+        <param name="planner_frequency"     value="0.33"/>                <!-- 默认值 0.33 Hz. 计算新边界和重新考虑目标的频率（Hz）-->
+        <param name="progress_timeout"      value="5.0"/>                 <!-- 默认值 30 s.    当机器人在 progress_timeout 没有任何进展时，当前目标将被放弃。-->
+        <param name="potential_scale"       value="3.0"/>                 <!-- 默认值 3        这个乘法参数影响边界权重的边界潜在分量（到边界的距离）。-->
+        <param name="gain_scale"            value="1.0"/>                 <!-- 默认值 1.       这个乘法参数影响边界权重的边界增益分量（边界大小）。-->
+        <param name="transform_tolerance"   value="0.3"/>                 <!-- 默认值 0.3 s.   变换机器人姿势时使用的变换容差。-->
+        <param name="min_frontier_size"     value="0.5"/>                 <!-- 默认值 0.5 m.   将边界视为探索目标的最小边界大小。-->
+    </node>
+</launch>

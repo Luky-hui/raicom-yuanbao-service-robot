@@ -1,0 +1,19 @@
+<launch> 
+    <!-- 启动机器人的控制节点 -->
+    <node pkg="sebot_robot" type="sebot_controller" name="sebot_controller" respawn="true">
+        <!-- 是否发布传感器话题 value：true发布 false不发布 -->
+        <param name="ultraEnale"   type="bool" value="false"/>      <!-- 超声波使能 -->
+        <param name="odomEnable"    type="bool" value="true"/>      <!-- 里程计使能 -->
+        <param name="imuEnable"     type="bool" value="true"/>      <!-- imu使能 -->
+    </node>
+
+    <!-- 发布机器人静态坐标 -->
+    <node pkg="sebot_robot" type="sebot_transform" name="sebot_transform" respawn="true"/>
+
+    <!-- 启动融合里程计 -->
+    <include file = "$(find robot_pose_ekf)/launch/robot_pose_ekf.launch"/>
+
+    <!-- 启动遥控手柄控制结点 -->
+    <node pkg="sebot_robot" type="sebot_joystick"   name="sebot_joystick" output="screen" respawn="true"/>
+
+</launch> 

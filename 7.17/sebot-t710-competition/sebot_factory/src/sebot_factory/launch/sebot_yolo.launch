@@ -1,0 +1,9 @@
+<!-- 启动NPU加速推理的Yolov3目标检测 -->
+<launch>
+
+  <!-- Yolov3目标检测 -->
+  <node pkg="sebot_factory" type="sebot_yolo" name="sebot_yolo" output="screen" respawn="true">
+    <param name="score"  value="0.1"/>   <!-- AI检测置信度 -->
+  </node>
+  
+</launch>

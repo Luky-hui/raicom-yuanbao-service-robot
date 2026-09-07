@@ -1,0 +1,58 @@
+<launch>  
+  <arg name="map_topic"  default="map" />               <!-- 地图发布的话题名称 -->
+  <arg name="odom_frame"  default="odom_combined" />         <!-- 里程计坐标系 -->
+
+  <!-- 启动gmapping算法的节点 -->
+  <node pkg="gmapping" type="slam_gmapping" name="slam_gmapping" respawn="true">
+  <!-- 坐标系名称 -->
+  <remap from="map"  to="$(arg map_topic)" />           <!-- 地图发布名称 -->
+  <param name="odom_frame" value="$(arg odom_frame)" /> <!-- 里程计坐标系 -->
+  <param name="map_frame"  value="map" />               <!-- 地图坐标系 -->
+  <remap from="scan" to="scan" />                       <!-- 激光雷达话题名称 -->   
+  <param name="base_frame" value="base_footprint" />    <!-- 机器人的坐标系 -->
+
+  <!-- 雷达数据处理设置 -->
+  <param name="maxRange" value="4.0"/>                  <!-- 传感器的最大范围 -->
+  <param name="maxUrange" value="3.0"/>                 <!-- 默认值80，激光可探测的最大范围，探测的最大范围要小于传感器的真实最大范围 -->
+  <param name="lskip" value="0"/>                       <!-- 默认值0，每次扫描跳过的光束数量，在计算压力过大时可以改成1 -->
+  <param name="iterations" value="5"/>                  <!-- 默认值5，扫描匹配的迭代次数 -->
+
+  <!-- 地图参数设置-->
+  <param name="xmin"  value="-5.0"/>                    <!-- 默认值-100，地图x向初始最小尺寸：m -->
+  <param name="ymin"  value="-5.0"/>                    <!-- 默认值-100，地图y向初始最小尺寸：m -->
+  <param name="xmax"  value="5.0" />                    <!-- 默认值100，地图x向初始最大尺寸 -->
+  <param name="ymax"  value="5.0" />                    <!-- 默认值100，地图y向初始最大尺寸 -->
+  <param name="delta" value="0.03"/>                    <!-- 默认值0.05，地图的分辨率（最小棚格的边长） -->
+  <param name="srr" value="0.1"/>                       <!-- 运动模型的噪声参数 -->
+  <param name="srt" value="0.2"/>
+  <param name="str" value="0.1"/>
+  <param name="stt" value="0.2"/>
+
+  <!-- 影响地图更新频率和时效性 -->
+  <param name="lstep" value="0.05"/>                    <!-- 默认值0.05，机器人采样时的线性步长 -->
+  <param name="astep" value="0.05"/>                    <!-- 默认值0.05，机器人采样时的角度步长 -->
+  <param name="linearUpdate" value="0.5"/>              <!-- 默认值1，每移动此长度后进行地图的更新：m -->
+  <param name="angularUpdate" value="0.5"/>             <!-- 默认值0.5，每旋转此角度后进行地图的更新：rad -->
+  <param name="map_update_interval" value="5.0"/>       <!-- 默认值5.0，地图更新频率（s），该值越低，更新频率越快且计算负载越大 --> 
+  <param name="minimumScore" value="30"/>               <!-- 默认值0.0，激光的置信度，越高说明对激光匹配算法的要求越高，激光的匹配也越容易失败而转去使用里程计数据，而设的太低又会使地图中出现大量噪声，只有扫描匹配成功的数据才能更新地图 -->
+  <param name="temporalUpdate" value="4.0"/>            <!-- 默认值-1.0，当最新扫描处理的速度比更新的速度慢时立即进行一次扫描匹配（为负数时关闭该功能） -->
+
+  <!-- 极大似然估计 -->
+  <param name="sigma" value="0.05"/>                    <!-- endpoint匹配标准差 -->
+  <param name="lsigma" value="0.075"/>                  <!-- 默认值0.075，用于扫描匹配概率的激光标准差 -->
+  <param name="kernelSize" value="3"/>                  <!-- 默认值1，地图的核的大小（小范围时核越小越好，大范围时核越大越好 -->
+  <param name="ogain" value="3.0"/>                     <!-- 默认值3.0, 似然估计为平滑重采样影响使用的增益 -->
+  <param name="llsamplerange" value="0.01"/>            <!-- 默认值0.01，似然计算的平移采样距离 -->
+  <param name="llsamplestep" value="0.01"/>             <!-- 默认值0.01，似然计算的平移采样步长 -->             
+  <param name="lasamplerange" value="0.005"/>           <!-- 默认值0.005，似然计算的角度采样距离 -->          
+  <param name="lasamplestep" value="0.005"/>            <!-- 默认值0.005，似然计算的角度采样步长 -->    
+  
+  <!-- 影响粒子滤波算法的精度和速度 -->     
+  <param name="resampleThreshold" value="0.5"/>         <!-- 默认值0.5，基于Neff的重采样阈值 -->
+  <param name="particles" value="30"/>                  <!-- 默认值30，滤波器中的粒子数目 -->
+  <param name="transform_publish_period" value="0.05" /><!-- 多长时间发布一次tf转换（map->odom转换），单位是秒 -->
+  <param name="occ_thresh" value="0.25" />              <!-- 占有栅格地图的阈值，只有当前单元格的占有率超过该值才认为是被占有。如果设置该值为1的话就会导致任何障碍物都不会认为是占有 -->
+  <param name="throttle_scans" value="1" />
+
+  </node>  
+</launch>

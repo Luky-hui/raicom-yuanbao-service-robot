@@ -1,0 +1,5 @@
+<launch>
+    <!-- 加载语音播报模块 -->
+	<node pkg="sebot_speech" type="sebot_audio.py" name="sebot_audio" output="screen" respawn="true"/>
+
+</launch>

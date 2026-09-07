@@ -1,0 +1,66 @@
+<launch>
+
+  <arg name="odom_frame_id" default="odom_combined"/>                  <!-- 接收里程计TF -->
+  <arg name="map" default="map"/>                                 <!-- 依赖的全局静态地图话题 -->
+  <arg name="init_pose_x" default="0.0"/>                         <!-- 机器人初始化姿态：仿真与实际差异 -->
+  <arg name="init_pose_y" default="0.0"/>                         <!-- 机器人初始化姿态：仿真与实际差异 -->
+  <arg name="init_pose_a" default="0.0"/>                         <!-- 机器人初始化姿态：仿真与实际差异 -->
+  <arg name="use_map_topic"   default="false"/>                   <!-- 建图true, 导航false -->
+
+  <!-- AMCL -->
+  <node pkg="amcl" type="amcl" name="amcl" respawn="true">
+    <remap from="scan"                      to="scan"/>           <!-- 激光雷达话题 -->
+    <remap from="map"                       to="$(arg map)" />    <!-- 依赖的全局静态地图话题 -->
+    <param name="odom_frame_id"             value="$(arg odom_frame_id)"/>         
+    <!-- 设置AMCL滤波器的参数 -->
+    <param name="min_particles"             value="300"/>   <!-- 400 滤波器中的最少粒子数，值越大定位效果越好，但是增加CPU消耗 -->
+    <param name="max_particles"             value="4000"/>  <!-- 5000 滤波器中最多粒子数，上限值，因为太多的粒子数会导致系统资源消耗过多 -->
+    <param name="kld_err"                   value="0.01"/>  <!-- 0.01 真实分布与估计分布之间的最大误差 -->
+    <param name="kld_z"                     value="0.99"/>  <!-- 上标准分位数（1-p），其中p是估计分布上误差小于kld_err的概率，默认0.99 -->
+    <param name="update_min_d"              value="0.1"/>   <!-- 0.05 执行滤波更新前平移运动的距离,对于里程计模型有影响,这个值建议不大于机器人半径 -->
+    <param name="update_min_a"              value="0.2"/>   <!-- 0.05 执行滤波更新前旋转的角度：rad -->
+    <param name="resample_interval"         value="2"/>     <!-- 在重采样前需要滤波更新的次数 -->
+
+    <param name="recovery_alpha_slow"       value="0.0"/>   <!-- 0.001 慢速的平均权重滤波的指数衰减频率，用作决定什么时候通过增加随机位姿来recover-->
+    <param name="recovery_alpha_fast"       value="0.0"/>   <!-- 0.1 快速的平均权重滤波的指数衰减频率，用作决定什么时候通过增加随机位姿来recover-->
+
+    <!-- 机器人初始化位姿 -->
+    <param name="initial_pose_x"            value="$(arg init_pose_x)"/>   <!-- 初始化粒子滤波器的平均值和协方差，估计机器人的初始位姿 -->
+    <param name="initial_pose_y"            value="$(arg init_pose_y)"/>
+    <param name="initial_pose_a"            value="$(arg init_pose_a)"/>   <!-- 初始位姿均值（yaw）-->
+    <param name="initial_cov_xx"            value="0.25"/>  <!-- 初始位姿协方差（x*x） -->
+    <param name="initial_cov_yy"            value="0.25"/>
+    <param name="initial_cov_aa"            value="0.068538917"/> <!-- Π/12 * Π/12 -->
+
+    <!-- 接受Map地图数据 -->
+    <param name="use_map_topic"             value="$(arg use_map_topic)"/>  <!-- true:实时建图并发布map，false:通过map server获取地图 -->
+    <param name="first_map_only"            value="true"/> <!-- 当设置为true时，AMCL将仅仅使用订阅的第一个地图,否则当收到新的地图后更新-->
+    <param name="transform_tolerance"       value="0.5"/>   <!-- tf变换发布推迟的时间:s -->
+    <param name="gui_publish_rate"          value="-1.0"/>  <!-- 扫描和路径发布到可视化软件的最大频率：Hz，-1.0失能此功能 -->
+    <param name="save_pose_rate"            value="0.5"/>   <!-- 存储上一次估计的位姿和协方差到参数服务器的最大速率：Hz, -->
+  
+    <!-- 设置激光雷达的参数 -->
+    <param name="laser_min_range"           value="0.1"/>   <!-- 最小扫描范围，参数设置为-1.0时，将会使用雷达上报的最小扫描范围 -->
+    <param name="laser_max_range"           value="3.5"/>   <!-- 最大扫描范围，参数设置为-1.0时，将会使用雷达上报的最小扫描范围 -->
+    <param name="laser_max_beams"           value="90"/>    <!-- 60 更新滤波器时，每次扫描中多少个等间距的光束被使用,减小计算量,太小会造成信息量少定位不准 -->
+    <param name="laser_z_hit"               value="0.95"/>   <!-- 0.95 模型的z_hit部分的混合权值 -->
+    <param name="laser_z_short"             value="0.1"/>  <!--模型的z_short部分的混合权值-->
+    <param name="laser_z_max"               value="0.05"/>  <!--模型的z_max部分的混合权值-->
+    <param name="laser_z_rand"              value="0.05"/>   <!--模型的z_rand部分的混合权值-->
+    <param name="laser_sigma_hit"           value="0.2"/>   <!--被用在模型的z_hit部分的高斯模型的标准差-->
+    <param name="laser_lambda_short"        value="0.1"/>   <!--模型z_short部分的指数衰减参数-->
+    <param name="laser_likehood_max_dist"   value="2.0"/>   <!-- 地图上做障碍物膨胀的最大距离：m -->
+    <param name="laser_model_type"          value="likelihood_field"/> <!--激光模型类型定义，可以是beam, likehood_field, likehood_field_prob-->
+
+    <!-- 设置里程计模型参数(最重要!!!) -->
+    <param name="odom_model_type"           value="diff"/>  <!-- odom模型选择-->
+    <param name="odom_alpha1"               value="0.2"/>   <!-- 0.03 由机器人旋转分量估计的里程计旋转的期望噪声 -->
+    <param name="odom_alpha2"               value="0.03"/>   <!-- 0.03 机器人平移分量估计的里程计旋转的期望噪声 -->
+    <param name="odom_alpha3"               value="0.03"/>   <!-- 0.03 里程计平移的期望噪声，如果自认为机器人的里程计信息比较准确那么可以减少该值 -->
+    <param name="odom_alpha4"               value="0.03"/>   <!-- 0.03 机器人运动部分的旋转分量估计的里程计平移的期望噪声，设置前4个值越大说明里程计的误差越大 -->
+    <param name="odom_alpha5"               value="0.0"/>   <!-- 平移相关的噪声参数，仅适用于全向移动机器人（omni）"-->
+    <param name="base_frame_id"             value="base_footprint"/> <!-- 机器人的基坐标系 -->
+    <param name="global_frame_id"           value="/map"/>   <!-- 由定位系统发布的坐标系名称 -->
+    <param name="tf_broadcast"              value="true"/>  <!-- 设置为false阻止amcl发布全局坐标系和里程计坐标系之间的tf变换 -->
+  </node>
+</launch>

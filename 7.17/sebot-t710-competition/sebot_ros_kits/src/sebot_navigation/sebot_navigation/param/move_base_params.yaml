@@ -1,0 +1,70 @@
+# move_base软件包配置
+# 选择全局路径的规划插件：
+# —— navfn:ROS中比较旧的代码实现了dijkstra和A*全局规划算法。
+# —— global_planner:重新实现了Dijkstra和A*全局规划算法,可以看作navfn的改进版。
+# —— parrot_planner:一种简单的算法实现全局路径规划算法。
+# 选择局部路径的规划插件：
+# ——base_local_planner:实现了Trajectory Rollout和DWA两种局部规划算法。
+# ——dwa_local_planner:实现了DWA局部规划算法，可以看作是base_local_planner的改进版本
+
+shutdown_costmaps: false      # 当move_base在不活动状态时，是否关掉代价地图
+controller_frequency: 10.0    # 向底盘控制移动话题cmd_vel发送命令的频率
+controller_patience: 3.0      # 在空间清理操作执行前，控制器花多长时间等有效控制下发
+planner_frequency: 5.0        # 全局规划操作的执行频率，如果设置为0.0，则全局规划器仅在接收到新的目标点或者局部规划器报告路径堵塞时才会重新执行规划操作.
+planner_patience: 5.0         # 在空间清理操作执行前，留给规划器多长时间来找出一条有效规划
+oscillation_timeout: 5.0     # 执行修复机制前，允许振荡的时长
+oscillation_distance: 0.1    # 来回运动在多大距离以上不会被认为是振荡
+
+# 全局规划器：路径规划算法选择（三种）
+# navfn/NavfnROS | global_planner/GlobalPlanner | carrot_planner/CarrotPlanner
+base_global_planner: "global_planner/GlobalPlanner"   # 指定用于move_base的全局规划器插件名称
+
+# 局部规划器：包括dwa、eband、teb局部规划器
+# dwa_local_planner/DWAPlannerROS | base_local_planner/TrajectoryPlannerROS | teb_local_planner/TebLocalPlannerROS
+base_local_planner: "dwa_local_planner/DWAPlannerROS" # 动态窗口方法
+
+max_planning_retries: 1       #最大规划路径的重复次数，-1表示无限次
+recovery_behavior_enabled: true  #是否启动恢复机制
+clearing_rotation_allowed: false  #是否启动旋转的恢复，必须是recovery_behavior_enabled在使能的基础上才能生效
+
+# -----------------------------------[机器人自恢复行为（拥堵路况）]---------------------------------------------------
+recovery_behaviors:  
+  - name: 'conservative_reset'  
+    type: 'clear_costmap_recovery/ClearCostmapRecovery'  
+  - name: 'aggressive_reset'
+    type: 'clear_costmap_recovery/ClearCostmapRecovery'
+  - name: 'super_reset'
+    type: 'clear_costmap_recovery/ClearCostmapRecovery'
+  - name: 'clearing_rotation'
+    type: 'rotate_recovery/RotateRecovery'  
+  # - name: 'move_slow_and_clear'
+  # type: 'move_slow_and_clear/MoveSlowAndClear'
+
+#保守清除，用户指定区域之外的障碍物将从机器人地图中清除
+#保守清除后，如果周围障碍物允许，机器人将进行原地旋转以清理空间
+conservative_reset:  
+  reset_distance: 1.0  
+  #layer_names: [static_layer, obstacle_layer, inflation_layer]
+  layer_names: [obstacle_layer]  
+
+#保守清除失败，积极清除，清除指定区域之外的所有障碍物，然后进行旋转
+#积极清除也失败后，放弃规划路径
+aggressive_reset:  
+  reset_distance: 3.0  
+  #layer_names: [static_layer, obstacle_layer, inflation_layer]
+  layer_names: [obstacle_layer]
+
+#可能是更进一步的清除，wiki未找到相关资料
+super_reset:  
+  reset_distance: 5.0  
+  #layer_names: [static_layer, obstacle_layer, inflation_layer]
+  layer_names: [obstacle_layer]
+
+#另一种恢复行为，需要注意该行为只能与具有动态设置速度限制功能的局部路径规划器适配，例如dwa
+move_slow_and_clear:  
+  clearing_distance: 0.5    #距离机器人半径几米范围内障碍将被清除
+  limited_trans_speed: 0.1  #执行该修复行为时候限定的线速度是多少m/s
+  limited_rot_speed: 0.4    #执行该修复行为时候限定的角速度是多少radians/second
+  limited_distance: 0.3     #在速度限制解除之前，机器人必须移动的距离(以米为单位)。
+  planner_namespace: "DWAPlannerROS"  #用于重配置参数的规划器命名空间, max_trans_vel和max_rot_vel参数将被重新配置
+# -----------------------------------------------------------------------------------------------------------------------

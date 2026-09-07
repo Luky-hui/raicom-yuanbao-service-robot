@@ -1,0 +1,74 @@
+<!-- STDR智能工厂服务仿真 -->
+<launch>
+
+  <!-- 启动语音播报任务 -->
+  <node pkg="sebot_speech" type="sebot_audio.py" name="sebot_audio" respawn="true" />
+  
+  <!-- 发布机器人静态坐标 -->
+  <node pkg="sebot_robot" type="sebot_transform" name="sebot_transform" respawn="true"/>
+
+  <!-- 启动机器人的控制节点 -->
+  <node pkg="sebot_robot" type="sebot_controller" name="sebot_controller" respawn="true">
+      <!-- 是否发布传感器话题 value：true发布 false不发布 -->
+      <param name="ultraEnale"  type="bool" value="false"/>    <!-- 超声波使能 -->
+      <param name="odomEnable"  type="bool" value="true"/>    <!-- 里程计使能 -->
+      <param name="imuEnable"   type="bool" value="true"/>    <!-- imu使能 -->
+  </node>
+
+  <!-- 启动融合里程计 -->
+  <include file = "$(find robot_pose_ekf)/launch/robot_pose_ekf.launch"/>
+
+  <!-- 启动激光雷达 -->
+  <include file = "$(find rplidar_ros)/launch/rplidar.launch" />
+
+  <!-- 加载SLAM地图 -->
+  <node name="map_server" pkg="map_server" type="map_server" args="$(find sebot_navigation)/map/map.yaml" respawn="true">
+    <param name="map" value="/map"/>
+  </node>
+
+  <!-- 启动蒙特卡洛定位算法 -->
+  <include file="$(find sebot_navigation)/param/amcl.xml"/>
+
+  <!-- 启动move_base路径规划 -->
+  <include file = "$(find sebot_navigation)/param/move_base.xml" />
+
+  <!-- 启动仿真监控界面 -->
+  <node pkg="rviz" type="rviz" name="rviz" args="-d $(find sebot_navigation)/rviz/navigation.rviz"/>
+
+  <!-- 启动智能工厂服务 -->
+  <node pkg="sebot_factory" type="sebot_factory" name="sebot_factory" output="screen" >
+    <param name="delayStart"  type="int"  value="5"/>      <!-- 程序启动延时（s），等待其它节点正常启动 -->
+    <param name="timeoutNavi" type="int"  value="5000"/>    <!-- 导航超时时间：ms -->
+    <param name="simulation" type="bool"  value="false"/>   <!-- STDR仿真模式使能 -->
+
+    <!-- 需求确认+智能取件相关配置参数 -->
+    <param name="pidPoseKp"  value="12.0"/>         <!-- 方向PID：比例系数 -->
+    <param name="pidPoseKi"  value="5.0"/>          <!-- 方向PID：积分系数 -->
+    <param name="pidPoseKd"  value="10.0"/>         <!-- 方向PID：微分系数 -->
+
+    <param name="pidDisKp"  value="5.0"/>           <!-- 距离PID：比例系数 -->
+    <param name="pidDisKi"  value="0.3"/>           <!-- 距离PID：积分系数 -->
+    <param name="pidDisKd"  value="0.0"/>           <!-- 距离PID：微分系数 -->
+
+    <param name="pidLocalKp"  value="0.001"/>       <!-- 位置PID：比例系数 -->
+    <param name="pidLocalKi"  value="0.00012"/>      <!-- 位置PID：积分系数 -->
+    <param name="pidLocalKd"  value="0.003"/>      <!-- 位置PID：微分系数 -->
+
+    <param name="pidClawXKp"  value="0.0002"/>       <!-- 机械爪PID：比例系数 -->
+    <param name="pidClawXKi"  value="0.000055"/>     <!-- 机械爪PID：积分系数 -->
+    <param name="pidClawXKd"  value="0.0005"/>       <!-- 机械爪PID：微分系数 -->
+    <param name="pidClawYKp"  value="0.0001"/>       <!-- 机械爪PID：比例系数 -->
+    <param name="pidClawYKi"  value="0.00025"/>     <!-- 机械爪PID：积分系数 -->
+    <param name="pidClawYKd"  value="0.0005"/>       <!-- 机械爪PID：微分系数 -->
+
+    <param name="disClaw"  value="0.55"/>            <!-- 机械爪夹取零件距离：m（需要+激光雷达盲区20cm） -->
+    <param name="disPick"  value="0.7"/>             <!-- 机械臂抓取零件距离：m（需要+激光雷达盲区20cm） -->
+    <param name="disSearch"  value="1.0"/>          <!-- AI搜索零件距离：m（需要+激光雷达盲区20cm） -->
+    
+    <param name="disOrder"  value="0.60"/>           <!-- [需求确认] 机器人距离阈值：m（需要+激光雷达盲区20cm） -->
+    <param name="debug" type="bool" value="true"/>   <!-- 调试标志：显示AI图像 -->
+    <param name="score"  value="0.35"/>               <!-- AI检测置信度 -->
+
+  </node>
+  
+</launch>

@@ -1,0 +1,22 @@
+#全局路径规划配置
+GlobalPlanner:
+  allow_unknown: true             # 是否允许规划器规划穿过未知区域(自主建图)（需要同步costmap_common_params.yaml中track_unknown_space参数）
+  default_tolerance: 0.2          # 当设置的目的地被障碍物占据时,需要以该参数为半径寻找到最近的点作为新目的地点.
+  visualize_potential: false      # 是否显示从PointCloud2计算得到的势区域
+  use_dijkstra: true              # true：使用dijkstra算法 | 否则使用A*算法
+  use_quadratic: true             # true：使用二次函数近似函数 | 否则使用更加简单的计算方式,这样节省硬件计算资源
+  use_grid_path: false            # true：会规划一条沿着网格边界的路径,偏向于直线穿越网格 | 否则将使用梯度下降算法,路径更为光滑点
+  old_navfn_behavior: false       # true：让global_planner完全复制navfn的功能,但注意navfn是非常旧的ROS系统中使用的,不建议设置为true
+  
+  lethal_cost: 253                # 致命代价值,默认是设置为253,可以动态来配置该参数
+  neutral_cost: 66                # 中等代价值,默认设置是50,可以动态配置该参数
+  cost_factor: 0.55               # 代价地图与每个代价值相乘的因子(default:3.0)
+  publish_potential: true         # 是否发布costmap的势函数
+  orientation_mode: 0             # 设置每个点的方向（None = 0,Forward = 1,Interpolate = 2,ForwardThenInterpolate = 3,Backward = 4,Leftward = 5,Rightward = 6）
+  orientation_window_size: 1      # 根据orientation_mode指定的位置积分来得到使用窗口的方向.默认值1
+
+# navfn规划器参数
+# NavfnROS:
+#   cost_factor: 0.55               # 用于转换NavFn::setCostmap()的代价值域，越大机器人越远离障碍物[0,4]
+#   neutral_cost: 66
+#   lethal_cost: 253

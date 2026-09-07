@@ -1,0 +1,38 @@
+<launch>
+    <!-- 启动机器人的控制节点 -->
+    <node pkg="sebot_robot" type="sebot_controller" name="sebot_controller" respawn="true">
+        <!-- 是否发布传感器话题 value：true发布 false不发布 -->
+        <param name="ultraEnale"   type="bool" value="false"/>      <!-- 超声波使能 -->
+        <param name="odomEnable"    type="bool" value="true"/>      <!-- 里程计使能 -->
+        <param name="imuEnable"     type="bool" value="true"/>      <!-- imu使能 -->
+    </node>
+
+    <!-- 启动激光雷达 -->
+    <include file = "$(find rplidar_ros)/launch/rplidar.launch" />
+
+    <!-- 启动融合里程计 -->
+    <include file = "$(find robot_pose_ekf)/launch/robot_pose_ekf.launch"/>
+
+    <!-- 发布机器人静态坐标 -->
+    <node pkg="sebot_robot" type="sebot_transform" name="sebot_transform" respawn="true"/>
+
+    <!-- 启动gmapping建图算法 -->
+	<include file="$(find sebot_slam)/param/gmapping.xml"/>
+
+    <!-- 启动rviz监视机器人建图 -->
+    <node pkg = "rviz" type = "rviz" name = "rviz" args = "-d $(find sebot_slam)/rviz/autoslam.rviz"/>
+    
+    <!-- 启动move_base节点 -->
+	<include file = "$(find sebot_navigation)/param/move_base.xml"/>
+    
+    <!-- 启动自主建图 -->
+    <include file = "$(find sebot_slam)/param/auto_slam.xml">
+        <arg name="debug"           value="false"/>    <!-- 是否打印debug信息 -->
+        <arg name="audio"           value="true"/>     <!-- 是否语音播报 -->
+        <arg name="visualize"       value="true"/>     <!-- 指定是否发布在rviz上显示的可视化边界 -->
+    </include>
+
+   <!-- 启动语音播报任务 -->
+   <node pkg="sebot_speech" type="sebot_audio.py" name="sebot_audio" respawn="true" />
+
+</launch>

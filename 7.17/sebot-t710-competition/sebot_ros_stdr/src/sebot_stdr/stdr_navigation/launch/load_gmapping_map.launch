@@ -1,0 +1,9 @@
+<!--
+  Description: 该启动文件用于加载gmapping建立的地图,这样就可以进行自动导航了.
+-->
+<launch>
+  <!-- load home map -->
+  <node pkg="map_server" type="map_server" name="stdr_load_home_map" args="$(find stdr_resources)/maps/sparse_obstacles.yaml">
+    <remap from="map" to="/amcl/map" />
+  </node>
+</launch>

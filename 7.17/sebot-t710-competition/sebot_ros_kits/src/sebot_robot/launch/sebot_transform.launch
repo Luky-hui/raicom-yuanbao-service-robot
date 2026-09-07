@@ -1,0 +1,18 @@
+<launch> <!-- 非终版, 根据商服2.0结构进行更改 --> 
+
+    <!-- 机器人陀螺仪坐标系和底盘坐标系的位置关系 -->
+    <node pkg="tf" type="static_transform_publisher" name="base_to_imu"     args="0 0 0 0 0 0                base_footprint     imu         30" respawn="true"/>
+
+    <!-- 机器人激光雷达坐标系和底盘坐标系的位置关系 -->
+    <node pkg="tf" type="static_transform_publisher" name="base_to_laser"   args="0 0 0.15 -3.1416 0 0       base_footprint     laser       30" respawn="true"/>
+    
+    <!-- 机器人深度相机坐标系和底盘坐标系的位置关系 -->
+    <node pkg="tf" type="static_transform_publisher" name="base_to_camera"  args="0.05 0 1.0783 0 0 0        base_footprint     camera 30" respawn="true"/>
+
+    <!-- 机器人超声波和底盘坐标系的位置关系 -->
+    <node pkg="tf" type="static_transform_publisher" name="base_to_ultraLF"  args="0.2 0.1 0.07 0 0 0        base_footprint      ultraLF  20" respawn="true"/>
+    <node pkg="tf" type="static_transform_publisher" name="base_to_ultraMF"  args="0.2 0 0.07 0 0 0          base_footprint      ultraMF  20" respawn="true"/>
+    <node pkg="tf" type="static_transform_publisher" name="base_to_ultraRF"  args="0.2 -0.1 0.07 0 0 0       base_footprint      ultraRF  20" respawn="true"/>
+    <node pkg="tf" type="static_transform_publisher" name="base_to_ultraMB"  args="-0.2 0 0.07 -3.1416 0 0   base_footprint      ultraMB  20" respawn="true"/>
+
+</launch> 

@@ -1,0 +1,5 @@
+<launch>
+    
+    <node pkg="sebot_factory" type="sebot_arm" name="sebot_arm" output="screen" respawn="true" />
+
+</launch>

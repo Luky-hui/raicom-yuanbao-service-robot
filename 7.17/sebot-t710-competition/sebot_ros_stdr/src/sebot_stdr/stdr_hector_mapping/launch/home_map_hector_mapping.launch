@@ -1,0 +1,59 @@
+<!--
+  Description: In stdr simulator hector mapping,load home map to test.
+-->
+<launch>
+  <arg name="map_scanmatch_frame_name" default="scanmatcher_frame"/>
+  <arg name="pub_map_odom_transform"   default="true"/>
+  <arg name="scan_queue_size"          default="10"/>
+  <arg name="base_frame" default="base_footprint" />
+  <arg name="odom_frame" default="base_footprint" />
+  <arg name="scan_topic" default="/scan" />
+  <arg name="map_topic"  default="/hector_map" />
+  <arg name="map_size"   default="1200" />
+
+  <!-- startup stdr simulator with robot0 -->
+  <include file="$(find stdr_launchers)/launch/home_map_robot_gui.launch" />
+
+  <!-- startup rviz to show hector mapping process -->
+  <node name="rviz" type="rviz" pkg="rviz" args="-d $(find stdr_hector_mapping)/rviz/config_rviz.rviz" />
+
+  <node pkg="hector_mapping" type="hector_mapping" name="stdr_hector_mapping" output="screen">
+    <remap from="map"  to="$(arg map_topic)"  />
+
+    <!-- Frame names -->
+    <param name="map_frame"  value="map_static" />
+    <param name="base_frame" value="$(arg base_frame)" />
+    <param name="odom_frame" value="$(arg odom_frame)" />
+
+    <!-- Map resolution/size/start point -->
+    <param name="map_resolution" value="0.04"/>
+    <param name="map_size"       value="$(arg map_size)"/>
+    <param name="map_start_x"    value="0.2" />
+    <param name="map_start_y"    value="0.2" />
+
+    <!-- Map update parameters -->
+    <param name="map_update_distance_thresh" value="0.45" />
+    <param name="map_update_angle_thresh"    value="0.30" />
+    <param name="map_pub_period"             value="2.2" />
+    <param name="map_multi_res_levels"       value="2" />
+    <param name="update_factor_free"         value="0.4" />
+    <param name="update_factor_occupied"     value="0.9" />
+
+    <!-- lidar laser parameters -->
+    <param name="scan_topic"         value="$(arg scan_topic)" />
+    <param name="laser_min_dist"     value="0.06" />
+    <param name="laser_max_dist"     value="4.09" />
+    <param name="laser_z_min_value"  value="-1.0" />
+    <param name="laser_z_max_value"  value="1.0" />
+
+    <param name="output_timing"              value="false"/>
+    <param name="scan_subscriber_queue_size" value="$(arg scan_queue_size)"/>
+    <param name="pub_map_odom_transform"     value="$(arg pub_map_odom_transform)"/>
+
+    <param name="advertise_map_service"      value="true" />
+    <param name="use_tf_scan_transformation" value="true" />
+    <param name="use_tf_pose_start_estimate" value="true" />
+    <param name="tf_map_scanmatch_transform_frame_name" value="$(arg map_scanmatch_frame_name)" />
+  </node>
+</launch>
+

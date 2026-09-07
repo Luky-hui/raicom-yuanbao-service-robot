@@ -1,0 +1,49 @@
+<launch>
+  <arg name="map_topic"  default="/map" />                           <!-- 地图话题数据 -->
+  <arg name="map_size"   default="2048" />                           <!-- 地图像素大小：例如15x15m(分辨率0.04),map_size=15/0.04=375 -->
+  <arg name="use_tf_pose_start_estimate"  default="false" />
+  <arg name="map_scanmatch_frame_name" default="scanmatcher_frame"/> <!-- 发布scanmatcher到map转换的坐标名 -->
+
+  <!-- 启动hector算法的节点 -->
+  <node pkg="hector_mapping" type="hector_mapping" name="hector_mapping">
+
+    <!-- 坐标系名称 -->
+    <remap from="map"  to="$(arg map_topic)"  />                  <!-- 地图话题数据 -->
+    <param name="map_frame"  value="map" />                       <!-- 地图坐标系 -->
+    <param name="base_frame" value="base_footprint" />            <!-- 机器人基坐标系，用于定位和激光扫描数据的变换 -->
+    <param name="odom_frame" value="base_footprint"/>             <!-- 里程计坐标系 -->                 
+    <param name="scan_topic" value="/scan"/>                      <!-- 设置激光数据的话题名称 -->
+
+    <!-- Tf 设置 -->
+    <param name="use_tf_scan_transformation" value="true"/>       <!-- 启用激光雷达TF变换 -->
+    <param name="use_tf_pose_start_estimate" value="$(arg use_tf_pose_start_estimate)"/> 
+    <param name="pub_map_odom_transform" value="true"/>           <!-- 是否发布map与odom之间的坐标变换 -->
+
+    <!-- 地图大小/起点设置 -->
+    <param name="map_resolution" value="0.03"/>                   <!-- 默认值0.025，地图的分辨率 -->
+    <param name="map_multi_res_levels"  value="2" />              <!-- 默认值3，地图的多分辨率层数（影响地图精度） -->
+    <param name="map_size" value="$(arg map_size)"/>              <!-- 默认值1024，正方形地图边长的栅格数目 -->
+    <param name="map_start_x"    value="0.5"/>                    <!-- 默认值0.5为居中，在x轴上，地图坐标系的原点相对于栅格地图的位置 -->
+    <param name="map_start_y"    value="0.5" />                   <!-- 默认值0.5为居中，在y轴上，地图坐标系的原点相对于栅格地图的位置 -->
+        
+    <!-- 激光雷达设置 -->
+    <param name="laser_min_dist"     value="0.2" />               <!-- 默认值0.4，雷达扫描点的最小距离（m），即扫面点小于此值时被忽略 -->
+    <param name="laser_max_dist"     value="3.5" />               <!-- 默认值30.0，雷达扫描点的最大距离（m），即扫面点大于此值时被忽略 -->
+    <param name="laser_z_min_value"  value= "-1.0" />             <!-- 默认值-1.0，雷达扫描点相对于雷达坐标系的最小高度（m），即扫面点小于此值时被忽略 -->
+    <param name="laser_z_max_value"  value= "1.0" />              <!-- 默认值1.0，雷达扫描点相对于雷达坐标系的最小高度（m），即扫面点大于此值时被忽略 -->
+
+    <!-- 地图更新参数 -->
+    <param name="map_update_distance_thresh"  value="0.1"/>       <!-- 默认值0.4，每移动此长度（m）后进行地图的更新 -->
+    <param name="map_update_angle_thresh"     value="0.2"/>       <!-- 默认值0.9，每旋转此角度（rad）后进行地图的更新 -->
+    <param name="update_factor_free"          value="0.4"/>       <!-- 默认值0.4，地图更新调整自由单元，范围[0.0. 1.0]，0.5意味着不改变 -->
+    <param name="update_factor_occupied"      value="0.9" />      <!-- 默认值0.9，地图更新调整占用单元，范围[0.0. 1.0]，0.5意味着不改变 -->
+
+    <!-- 发布设置 -->
+    <param name="map_pub_period" value="2.2"/>                    <!-- 默认值2.0，map发布的周期（s） -->
+    <param name="output_timing" value="false"/>                   <!-- 默认值false，决定是否通过ROS_INFO输出每次雷达扫描处理的时序信息 -->
+    <param name="advertise_map_service"       value="true"/>      <!-- 是否发送地图话题-->
+    <param name="scan_subscriber_queue_size"  value="10"/>        <!-- 默认值5，scan订阅的队列大小，如果将日志文件以比实时速度更快的速度播放到hector_mapping，则应置为较高的值(如50) -->
+    <param name="tf_map_scanmatch_transform_frame_name" value="$(arg map_scanmatch_frame_name)" />
+
+  </node>
+</launch>

@@ -1,0 +1,12 @@
+global_costmap:
+  global_frame: map                 # 全局代价地图需要在哪个坐标系下运行
+  robot_base_frame: base_footprint  # 全局代价地图中机器人本体的基坐标系
+  update_frequency: 0.2             # 全局代价地图更新频率(Hz)，一般全局代价地图更新频率设置的比较小
+  publish_frequency: 0.2            # 对于静态的全局地图来说，不需要不断发布
+  static_map: true                  # 配置是否使用map_server提供的地图来初始化
+  rolling_window: false             # 是否在机器人移动过程中需要滚动窗口:始终保持机器人在当前窗口中心位置
+  transform_tolerance: 1.0          # 坐标系间的转换可以忍受的最大延时(s)。对于典型的工作站和机器人之间的无线网络来说，与1.0秒同一级别的都可以工作的很好
+  plugins:                          # 使用三个插件来融合三个不同图层，然后合成一个master_layer来进行全局路径规划
+    - {name: static_layer,    type: "costmap_2d::StaticLayer"}
+    - {name: obstacle_layer,  type: "costmap_2d::ObstacleLayer"}
+    - {name: inflation_layer, type: "costmap_2d::InflationLayer"}

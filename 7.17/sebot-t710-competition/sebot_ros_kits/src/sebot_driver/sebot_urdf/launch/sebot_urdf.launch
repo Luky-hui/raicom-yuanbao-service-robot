@@ -1,0 +1,7 @@
+<launch>
+  <arg name="model" />
+  <!-- 读取机器人的模型文件 -->
+  <param name="robot_description" textfile="$(find sebot_urdf)/urdf/sebot_urdf.urdf" />
+  <param name ="use_gui" value="True" />
+  <node name="robot_state_publisher" pkg ="robot_state_publisher" type="robot_state_publisher" />
+</launch>

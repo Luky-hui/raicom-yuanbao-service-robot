@@ -1,0 +1,44 @@
+<!--
+  Description:
+        启动move_base和amcl来进行自动导航,然后启动patrol_nav_node,该节点可以
+    配置的参数如下:
+    * rest_time:到达一个目标位姿后,需要等待的秒数,然后再前往下一个目标位姿.
+    * keep_patrol:是否巡逻完一圈后不断的来巡逻,一直不停止.当设置了此参数为true后,
+                  那么下面的巡逻类型参数就会无效,因为将不断的巡逻,没有圈数和
+                  时间的限制了.而只能设置random_patrol,是否启用随机目标点巡逻.
+    * random_patrol:是否启用随机目标点巡逻,而不是按照顺序点来巡逻.该参数只有在
+                    keep_patrol无限巡逻设置为true后设置该参数才有效.如果在
+                    patrol_loop和patrol_time时只能按照顺序点来导航.
+    * patrol_type:巡逻的类型,当不是不断的巡逻的话,就需要设置使用哪种巡逻方式了.
+                  这些参数具备互斥性,设置为0后,那么设置的patrol_time参数就会无效,
+                  如果设置为1,那么设置的patrol_loop参数就会无效:
+                  0:使用巡逻圈数patrol_loop,当巡逻指定的圈数后停止;
+                  1:使用巡逻时间patrol_time,当巡逻指定的时间后返回起始点停止;
+    * patrol_loop:当keep_patrol设置为false后,可以来设置该参数,设置巡航的圈数.
+                  即按照顺序将所有目标点巡逻一遍就是走了一圈.
+    * patrol_time:配置巡逻的时间,当检测到巡逻时间到达指定时间后,就返回到起始点.
+                  设置的巡逻时间单位是分钟.
+-->
+<launch>
+  <!-- load stdr simulator with robot0 -->
+  <include file="$(find stdr_launchers)/launch/server_with_map_and_gui_plus_robot.launch" />
+
+  <!-- startup move_base node -->
+  <include file="$(find stdr_move_base)/launch/stdr_move_base.launch" />
+
+  <!-- load map -->
+  <include file="$(find stdr_navigation)/launch/load_hector_map.launch" />
+
+  <!-- startup amcl node -->
+  <include file="$(find stdr_amcl)/launch/stdr_amcl.launch" />
+
+  <!-- startup patrol navigation node -->
+  <node pkg="stdr_navigation" type="patrol_nav.py" name="patrol_nav_node" output="screen" >
+    <param name="rest_time"     value="5" />
+    <param name="keep_patrol"   value="true" />
+    <param name="random_patrol" value="false" />
+    <param name="patrol_type"   value="0" />
+    <param name="patrol_loop"   value="1" />
+    <param name="patrol_time"   value="3" />
+  </node>
+</launch>

@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+<package format="2">
+    <name>sebot_navigation</name>
+    <version>0.0.0</version>
+    <description>The sebot_navigation package</description>
+
+    <maintainer email="leo@todo.todo">sasu</maintainer>
+    <license>TODO</license>
+
+    <buildtool_depend>catkin</buildtool_depend>
+
+    <build_depend>roscpp</build_depend>
+    <build_export_depend>roscpp</build_export_depend>
+    <exec_depend>roscpp</exec_depend>
+
+    <build_depend>geometry_msgs</build_depend>
+    <build_export_depend>geometry_msgs</build_export_depend>
+    <exec_depend>geometry_msgs</exec_depend>
+
+    <build_depend>std_msgs</build_depend>
+    <build_export_depend>std_msgs</build_export_depend>
+    <exec_depend>std_msgs</exec_depend>
+
+    <build_depend>tf</build_depend>
+    <build_export_depend>tf</build_export_depend>
+    <exec_depend>tf</exec_depend>
+
+    <build_depend>actionlib</build_depend>
+    <build_export_depend>actionlib</build_export_depend>
+    <exec_depend>actionlib</exec_depend>
+
+    <build_depend>actionlib_msgs</build_depend>
+    <build_export_depend>actionlib_msgs</build_export_depend>
+    <exec_depend>actionlib_msgs</exec_depend>
+
+    <export>
+  </export>
+</package>

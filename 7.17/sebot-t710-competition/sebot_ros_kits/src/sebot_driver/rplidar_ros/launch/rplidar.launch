@@ -1,0 +1,15 @@
+<launch>
+  <!-- 启动激光雷达结点 -->
+  <node name="rplidarNode"          pkg="rplidar_ros"  type="rplidarNode" output="screen" respawn="true">
+    <!-- 设置激光雷达的串口名称 -->
+    <param name="serial_port"         type="string" value="/dev/rplidar"/> 
+    <!-- 设置激光雷达串口的波特率--> 
+    <param name="serial_baudrate"     type="int"    value="115200"/>
+    <!-- 激光雷达坐标系的名称-->
+    <param name="frame_id"            type="string" value="laser"/>
+    <!-- 是否倒置安装-->
+    <param name="inverted"            type="bool"   value="false"/>
+    <!-- 是否进行角度补偿-->
+    <param name="angle_compensate"    type="bool"   value="true"/>
+  </node>
+</launch>

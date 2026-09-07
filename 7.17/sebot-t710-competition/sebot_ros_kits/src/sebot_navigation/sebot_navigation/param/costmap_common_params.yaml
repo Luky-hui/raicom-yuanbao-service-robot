@@ -1,0 +1,44 @@
+# 代价地图通用配置文件
+
+# 机器人外轮廓坐标（顺时针）
+footprint: [ [0.17, 0.2],[0.225,0.06],[0.225,-0.06],[0.17,-0.2],[-0.17,-0.2],[-0.225,-0.06],[-0.225,0.06],[-0.17,0.2]] 
+# robot_radius: 0.2 #圆形机器人轮廓半径:m
+
+# 静态层设置：即SLAM中构建的地图层
+static_layer:   
+  enabled: true              # 启用静态图层
+
+# 障碍层设置：动态的记录传感器感知到的障碍物信息
+obstacle_layer:         
+  enabled: true              # 启用障碍层
+  combination_method: 1      # 更新地图上的代价值（0/1）
+  track_unknown_space: false # true：可行驶区域只有一层（膨胀层包裹），false：可行驶未知区域
+  obstacle_range: 2.5        # 设置机器人检测障碍物的最大范围：m
+  raytrace_range: 3.0        # 实时清除代价地图上的障碍物的最大范围：m
+  # 列出代价地图需要关注的所有传感器信息
+  observation_sources: laser_sensor
+  # 激光雷达传感器信息
+  laser_sensor: {
+    sensor_frame: laser,     # 激光雷达传感器的坐标系
+    data_type: LaserScan,    # 激光雷达数据类型
+    topic: scan,             # 激光雷达发布的话题
+    marking: true,           # 是否可以使用该传感器来标记障碍物
+    clearing: true           # 是否可以使用该传感器来清除障碍物标记为自由空间
+  }
+  
+# 超声波层设置
+# sonar_layer: 
+#   enabled:         true      # 启用超声波层
+#   clear_threshold: 0.2
+#   mark_threshold:  0.8
+#   topics: ["/msgUltraLF", "/msgUltraMF", "/msgUltraRF", "/msgUltraMB"]
+#   clear_on_max_reading: true
+
+
+# 膨胀层设置：用于在障碍物外标记一层危险区域，在路径规划时需要避开该危险区域
+inflation_layer:
+  enabled: true              # 启用膨胀层
+  inflation_radius: 0.5      # 膨胀半径：一般将该值设置为机器人底盘的直径大小。如果机器人经常撞到障碍物就需要增大该值，若经无法通过狭窄地方就减小该值
+  cost_scaling_factor: 5.0   # 膨胀过程中应用到代价值的比例因，增大比例因子反而会降低代价：增大以降低DWA算法对“C”型路口碰撞风险
+
+

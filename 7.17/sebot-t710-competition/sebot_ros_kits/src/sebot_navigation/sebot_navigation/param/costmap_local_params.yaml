@@ -1,0 +1,17 @@
+local_costmap:
+  global_frame: odom_combined       # 局部代价地图中的全局坐标系，一般需要设置为odom_frame
+  robot_base_frame: base_footprint  # 机器人本体的基坐标系
+  update_frequency: 2.0             # 局部代价地图的更新频率：Hz
+  publish_frequency: 2.0            # 局部代价地图的发布频率：Hz
+  static_map: false                 # 局部代价地图一般不设置为静态地图，因为需要检测是否在机器人附近有新增的动态障碍物;
+  rolling_window: true              # 使用滚动窗口，始终保持机器人在当前局部地图的中心位置
+  width: 3.0                        # 滚动窗口的宽度：m
+  height: 3.0                       # 滚动窗口的高度：m
+  resolution: 0.03                  # 地图的分辨率，该分辨率一定与SLAM发布地图文件中的一致
+  transform_tolerance: 1.0          # 局部代价地图中的坐标系之间转换的最大可忍受延时（s）
+  
+  # 融合两个不同图层，然后合成一个master_layer来进行全局路径规划 ps：局部代价地图一般不设置为静态地图，因为需要检测是否在机器人附近有新增的动态障碍物
+  plugins:
+    - {name: obstacle_layer,  type: "costmap_2d::ObstacleLayer"}  # 障碍层
+    - {name: inflation_layer, type: "costmap_2d::InflationLayer"} # 膨胀层
+    # - {name: sonar_layer,     type: "range_sensor_layer::RangeSensorLayer"}  
