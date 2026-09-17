@@ -126,15 +126,15 @@ sherpa-onnx
 Silero VAD
 Edge TTS
 ```
-```text
 完成：
+```text
 人员检测
 → 机器人唤醒
 → 语音识别
 → 指令解析
 → ROS 任务触发
 → 语音反馈
-```
+```text
 自主充电
 充电任务流程：
 导航至充电接近点
