@@ -238,10 +238,13 @@ raicom-yuanbao-service-robot/
 └── README.md
 ```
 🚀 环境
+```text
 Ubuntu 20.04
 ROS Noetic
 Python 3.8
+```
 编译：
+```text
 source /opt/ros/noetic/setup.bash
 
 cd ~/bobac3_ws
@@ -251,8 +254,10 @@ source devel/setup.bash
 cd ~/ros_workspace
 catkin_make
 source devel/setup.bash --extend
+```
 🏆 项目成果
 实现服务组省赛核心任务完整闭环：
+```text
 人员感知
    ↓
 自然交互
@@ -266,4 +271,9 @@ source devel/setup.bash --extend
 异常处理
    ↓
 任务收尾
+```
 完成迎宾导览、五馆自主巡检、火源与灭火器异常检测、语音报警及自主充电等功能。
+
+📌 说明
+仓库主要用于比赛项目展示与技术交流。
+部分运行环境、模型权重、大体积资源及机器人底层依赖未包含在仓库中。
