@@ -135,9 +135,9 @@ Edge TTS
 → ROS 任务触发
 → 语音反馈
 ```
-```text
 自主充电
 充电任务流程：
+```text
 导航至充电接近点
         ↓
 视觉识别充电桩
@@ -152,6 +152,7 @@ Edge TTS
 ```
 🗺️ 任务流程
 任务一 · 迎宾导览
+```text
 检测访客
    ↓
 机器人唤醒
@@ -167,14 +168,18 @@ Edge TTS
 播报场馆介绍
    ↓
 返回出发区
+```
 支持：
+```text
 北京馆
 广州馆
 吉林馆
 上海馆
 深圳馆
+```
 任务二 · 智能巡检
 巡检路线：
+```text
 北京馆
   ↓
 广州馆
@@ -186,12 +191,15 @@ Edge TTS
 深圳馆
   ↓
 自主充电
+```
 每个场馆完成：
+```text
 导航
 → 精确停车
 → 视觉识别
 → 异常判断
 → 报警 / 播报
+```
 🛠 技术栈
 机器人系统
 ROS Noetic · Gazebo · RViz · TF · actionlib
@@ -204,6 +212,7 @@ SenseVoice · sherpa-onnx · Silero VAD · Edge TTS
 工程
 Python · Bash · YAML · catkin · ROS launch
 📁 项目结构
+```text
 raicom-yuanbao-service-robot/
 │
 ├── bobac3_ws/
@@ -227,6 +236,7 @@ raicom-yuanbao-service-robot/
 │
 ├── .gitignore
 └── README.md
+```
 🚀 环境
 Ubuntu 20.04
 ROS Noetic
